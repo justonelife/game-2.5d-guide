@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#12101a">
+<meta name="description" content="Hội thoại, inventory, cổng khóa, trigger, flags, save/load, chuyển màn">
+<title>06 Cơ chế phiêu lưu · Godot 4 2.5D</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2312101a'/%3E%3Crect x='6' y='2' width='4' height='3' fill='%23ffc857'/%3E%3Crect x='5' y='5' width='6' height='2' fill='%23ffe3a0'/%3E%3Crect x='6' y='7' width='4' height='6' fill='%235ad1e6'/%3E%3Crect x='4' y='13' width='8' height='2' fill='%23474063'/%3E%3C/svg%3E">
+<script>/* set the saved theme before first paint so there is no flash */(function(){try{var t=localStorage.getItem("g25d-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body class="page page--chapter">
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="progressBar"></span></div>
+
+<header class="topbar">
+  <a class="topbar__back" href="index.html"><span aria-hidden="true">←</span> Mục lục</a>
+  <span class="topbar__num">06</span>
+  <button class="iconbtn themebtn" type="button" data-theme-toggle aria-pressed="false" aria-label="Đổi nền sáng/tối">
+    <span class="themebtn__txt">Sáng</span>
+  </button>
+  <button class="iconbtn topbar__toc" id="tocToggle" type="button" aria-expanded="false" aria-controls="tocPanel">
+    <span class="topbar__toc-icon" aria-hidden="true"></span><span>Mục</span>
+  </button>
+</header>
+
+<div class="shell">
+  <nav class="toc" id="tocPanel" aria-label="Mục lục chương">
+    <p class="toc__title">Trong chương này</p>
+    <ol class="toc__list"><li class="toc__item toc__item--h2"><a href="#61-nền-tảng-autoload-singleton">6.1 Nền tảng: Autoload singleton</a></li><li class="toc__item toc__item--h3"><a href="#game-stategd">game_state.gd</a></li><li class="toc__item toc__item--h2"><a href="#62-dữ-liệu-item-bằng-resource">6.2 Dữ liệu item bằng Resource</a></li><li class="toc__item toc__item--h2"><a href="#63-hệ-thống-hội-thoại">6.3 Hệ thống hội thoại</a></li><li class="toc__item toc__item--h3"><a href="#631-dữ-liệu-dialog">6.3.1 Dữ liệu dialog</a></li><li class="toc__item toc__item--h3"><a href="#632-cây-scene-hộp-thoại">6.3.2 Cây scene hộp thoại</a></li><li class="toc__item toc__item--h3"><a href="#633-script-hội-thoại-đầy-đủ">6.3.3 Script hội thoại (đầy đủ)</a></li><li class="toc__item toc__item--h3"><a href="#634-script-ui-hộp-thoại-typewriter-choices">6.3.4 Script UI hộp thoại (typewriter + choices)</a></li><li class="toc__item toc__item--h2"><a href="#64-interactable-npc-item-cửa">6.4 Interactable: NPC, item, cửa</a></li><li class="toc__item toc__item--h3"><a href="#641-npc">6.4.1 NPC</a></li><li class="toc__item toc__item--h3"><a href="#642-item-pickup">6.4.2 Item pickup</a></li><li class="toc__item toc__item--h3"><a href="#643-cổng-khóa">6.4.3 Cổng khóa</a></li><li class="toc__item toc__item--h2"><a href="#65-trigger-vùng-area3d">6.5 Trigger vùng (Area3D)</a></li><li class="toc__item toc__item--h3"><a href="#save-point">Save point</a></li><li class="toc__item toc__item--h2"><a href="#66-inventory-ui">6.6 Inventory UI</a></li><li class="toc__item toc__item--h2"><a href="#67-save-load">6.7 Save / Load</a></li><li class="toc__item toc__item--h3"><a href="#so-sánh-3-cách-lưu">So sánh 3 cách lưu</a></li><li class="toc__item toc__item--h3"><a href="#save-systemgd">save_system.gd</a></li><li class="toc__item toc__item--h3"><a href="#điều-gì-không-được-lưu-quan-trọng">Điều gì KHÔNG được lưu (quan trọng)</a></li><li class="toc__item toc__item--h2"><a href="#68-chuyển-màn-giữ-nguyên-state">6.8 Chuyển màn giữ nguyên state</a></li><li class="toc__item toc__item--h3"><a href="#vì-sao-player-nằm-trong-level-không-phải-trong-main">Vì sao player nằm TRONG level, không phải trong Main?</a></li><li class="toc__item toc__item--h3"><a href="#maintscn-hoàn-chỉnh">main.tscn hoàn chỉnh</a></li><li class="toc__item toc__item--h3"><a href="#portal-cửa-vàora-giữa-2-màn">Portal (cửa vào/ra giữa 2 màn)</a></li><li class="toc__item toc__item--h2"><a href="#69-hud-prompt-toast-tiêu-đề-khu-vực">6.9 HUD: prompt + toast + tiêu đề khu vực</a></li><li class="toc__item toc__item--h2"><a href="#610-câu-đố-3-thứ-tự-ba-đuốc-state-machine-nhỏ">6.10 Câu đố 3: thứ tự ba đuốc (state machine nhỏ)</a></li><li class="toc__item toc__item--h2"><a href="#611-thứ-tự-làm-test-từng-bước">6.11 Thứ tự làm &amp; test từng bước</a></li><li class="toc__item toc__item--h2"><a href="#612-bài-tập">6.12 Bài tập</a></li><li class="toc__item toc__item--h2"><a href="#613-lỗi-thường-gặp">6.13 Lỗi thường gặp</a></li></ol>
+  </nav>
+
+  <main class="main" id="main">
+    <article class="prose">
+      <p class="eyebrow">Chương 06 · 1703 dòng</p>
+      <h1 class="title">Cơ chế phiêu lưu</h1>
+      <p class="lede">Hội thoại, inventory, cổng khóa, trigger, flags, save/load, chuyển màn</p>
+      <hr class="rule rule--tight">
+      <p>Chương nặng nhất về code. Thứ tự làm: <strong>Autoload → Dialog → Inventory → Interactable → Flags → Save → Chuyển màn</strong>. Làm xong từng phần rồi test, đừng viết hết mới chạy.</p><hr class="rule"><h2 id="61-nền-tảng-autoload-singleton" class="h h--2">6.1 Nền tảng: Autoload singleton<a class="anchor" href="#61-nền-tảng-autoload-singleton" aria-label="Liên kết tới mục này">#</a></h2><p>Autoload = node tồn tại suốt game, không bị xóa khi đổi scene. Đây là chỗ giữ state.</p><p>Đăng ký ở <code>Project Settings → Globals → Autoload</code> (tên trong Godot 4 có thể là tab <strong>Globals</strong>):</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Tên (Node Name)</th><th>Path</th><th>Vai trò</th></tr></thead><tbody><tr><td><code>GameState</code></td><td><code>res://scripts/autoload/game_state.gd</code></td><td>Flags, inventory, dữ liệu tiến trình</td></tr><tr><td><code>SceneRouter</code></td><td><code>res://scripts/autoload/scene_router.gd</code></td><td>Chuyển màn, fade, spawn point</td></tr><tr><td><code>Dialogue</code></td><td><code>res://scripts/autoload/dialogue.gd</code></td><td>Chạy hội thoại</td></tr><tr><td><code>SaveSystem</code></td><td><code>res://scripts/autoload/save_system.gd</code></td><td>Ghi/đọc file save</td></tr><tr><td><code>Audio</code></td><td><code>res://scripts/autoload/audio.gd</code></td><td>BGM/SFX (chương 08)</td></tr><tr><td><code>HUD</code></td><td><code>res://scenes/ui/hud.tscn</code></td><td>Prompt, tiêu đề khu vực (autoload cả scene được)</td></tr></tbody></table></div><p><strong>Thứ tự autoload quan trọng</strong>: <code>GameState</code> phải trước <code>SceneRouter</code> và <code>SaveSystem</code> vì chúng phụ thuộc nó. Kéo thả để sắp thứ tự trong danh sách.</p><blockquote class="note"><p>Nguyên tắc chống rối: <strong>chỉ <code>GameState</code> giữ dữ liệu. Các autoload khác chỉ có hành vi.</strong> Nếu bạn thấy mình lưu tiến trình ở 3 chỗ khác nhau → sẽ có bug save/load. Một nguồn sự thật duy nhất.</p></blockquote><h3 id="game-stategd" class="h h--3"><code>game_state.gd</code><a class="anchor" href="#game-stategd" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/autoload/game_state.gd
+extends Node
+
+## ─── Signals: hệ thống khác lắng nghe để phản ứng ────────────────────
+signal flag_changed(flag_name: String, value: bool)
+signal inventory_changed
+signal input_lock_changed(locked: bool)
+
+## ─── Dữ liệu tiến trình (tất cả những gì cần SAVE) ───────────────────
+## Cờ cốt truyện. Không tồn tại trong dict = false.
+var flags: Dictionary = {}
+
+## Inventory: { item_id: số lượng }
+var inventory: Dictionary = {}
+
+## Level hiện tại + spawn point, để save/load quay đúng chỗ.
+var current_level_path: String = ""
+var current_spawn: String = "spawn_default"
+
+## Tổng thời gian chơi (giây) — hiện ở màn save.
+var playtime: float = 0.0
+
+## Đếm số nguồn đang khóa input (thoại + cutscene có thể trùng nhau).
+var _lock_count: int = 0
+
+
+func _process(delta: float) -&gt; void:
+	playtime += delta
+
+
+## ─── Flags ───────────────────────────────────────────────────────────
+
+func set_flag(flag_name: String, value: bool = true) -&gt; void:
+	var old: bool = flags.get(flag_name, false)
+	if old == value:
+		return
+	if value:
+		flags[flag_name] = true
+	else:
+		flags.erase(flag_name)     # không lưu false -&gt; file save gọn
+	flag_changed.emit(flag_name, value)
+
+
+func has_flag(flag_name: String) -&gt; bool:
+	return flags.get(flag_name, false)
+
+
+## Kiểm tra nhiều flag cùng lúc. Tiền tố "!" = phải KHÔNG có flag đó.
+## Ví dụ: has_all_flags(["has_fish", "!gave_fish"])
+func has_all_flags(required: Array) -&gt; bool:
+	for f in required:
+		var name_str := String(f)
+		if name_str.begins_with("!"):
+			if has_flag(name_str.substr(1)):
+				return false
+		elif not has_flag(name_str):
+			return false
+	return true
+
+
+## ─── Inventory ───────────────────────────────────────────────────────
+
+func add_item(item_id: String, amount: int = 1) -&gt; void:
+	if amount &lt;= 0:
+		return
+	inventory[item_id] = inventory.get(item_id, 0) + amount
+	inventory_changed.emit()
+
+
+## Trả về true nếu bỏ được đủ số lượng. False = không đủ, KHÔNG bỏ gì.
+func remove_item(item_id: String, amount: int = 1) -&gt; bool:
+	var have: int = inventory.get(item_id, 0)
+	if have &lt; amount:
+		return false
+	if have == amount:
+		inventory.erase(item_id)
+	else:
+		inventory[item_id] = have - amount
+	inventory_changed.emit()
+	return true
+
+
+func has_item(item_id: String, amount: int = 1) -&gt; bool:
+	return inventory.get(item_id, 0) &gt;= amount
+
+
+func get_item_count(item_id: String) -&gt; int:
+	return inventory.get(item_id, 0)
+
+
+## ─── Khóa input ──────────────────────────────────────────────────────
+## Dùng đếm thay vì boolean: nếu cutscene và dialog cùng khóa,
+## dialog kết thúc không được mở khóa khi cutscene còn chạy.
+
+func push_input_lock() -&gt; void:
+	_lock_count += 1
+	if _lock_count == 1:
+		input_lock_changed.emit(true)
+
+
+func pop_input_lock() -&gt; void:
+	_lock_count = maxi(0, _lock_count - 1)
+	if _lock_count == 0:
+		input_lock_changed.emit(false)
+
+
+func is_input_locked() -&gt; bool:
+	return _lock_count &gt; 0
+
+
+## ─── Serialize cho save (chương 6.7) ─────────────────────────────────
+
+func to_dict() -&gt; Dictionary:
+	return {
+		"flags": flags.duplicate(),
+		"inventory": inventory.duplicate(),
+		"level": current_level_path,
+		"spawn": current_spawn,
+		"playtime": playtime,
+	}
+
+
+func from_dict(data: Dictionary) -&gt; void:
+	flags = data.get("flags", {})
+	inventory = data.get("inventory", {})
+	current_level_path = data.get("level", "")
+	current_spawn = data.get("spawn", "spawn_default")
+	playtime = float(data.get("playtime", 0.0))
+	inventory_changed.emit()
+
+
+## Reset khi bắt đầu game mới.
+func reset() -&gt; void:
+	flags.clear()
+	inventory.clear()
+	current_level_path = ""
+	current_spawn = "spawn_default"
+	playtime = 0.0
+	_lock_count = 0
+	inventory_changed.emit()
+	input_lock_changed.emit(false)</code></pre></figure><hr class="rule"><h2 id="62-dữ-liệu-item-bằng-resource" class="h h--2">6.2 Dữ liệu item bằng <code>Resource</code><a class="anchor" href="#62-dữ-liệu-item-bằng-resource" aria-label="Liên kết tới mục này">#</a></h2><p>Dùng custom <code>Resource</code> thay vì Dictionary hardcode: có type checking, sửa được trong Inspector, AI đọc hiểu dễ hơn.</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/systems/item_data.gd
+class_name ItemData
+extends Resource
+
+@export var id: String = ""                     # khóa duy nhất, ví dụ "rusty_key"
+@export var display_name: String = ""           # "Chìa Khóa Rỉ"
+@export_multiline var description: String = ""  # mô tả trong inventory
+@export var icon: Texture2D                     # icon 16x16
+@export var stackable: bool = false
+@export var max_stack: int = 1
+@export var usable: bool = false                # có nút "Dùng" trong inventory không
+@export var quest_item: bool = false            # không bỏ được</code></pre></figure><p>Tạo file <code>.tres</code> trong <code>data/items/</code>:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>File</th><th>id</th><th>display_name</th></tr></thead><tbody><tr><td><code>fish.tres</code></td><td><code>fish</code></td><td>Cá Nục Tươi</td></tr><tr><td><code>rusty_key.tres</code></td><td><code>rusty_key</code></td><td>Chìa Khóa Rỉ</td></tr><tr><td><code>salt_fire_1.tres</code></td><td><code>salt_fire_1</code></td><td>Lửa Muối (viên thứ nhất)</td></tr><tr><td><code>salt_fire_2.tres</code></td><td><code>salt_fire_2</code></td><td>Lửa Muối (viên thứ hai)</td></tr><tr><td><code>salt_fire_3.tres</code></td><td><code>salt_fire_3</code></td><td>Lửa Muối (viên thứ ba)</td></tr><tr><td><code>lantern.tres</code></td><td><code>lantern</code></td><td>Đèn Dầu Cũ</td></tr></tbody></table></div><p>Bảng tra item (autoload phụ hoặc static):</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/systems/item_db.gd
+class_name ItemDB
+extends RefCounted
+
+const ITEM_DIR := "res://data/items/"
+
+static var _cache: Dictionary = {}
+
+## Nạp tất cả item .tres một lần, cache theo id.
+static func _ensure_loaded() -&gt; void:
+	if not _cache.is_empty():
+		return
+	var dir := DirAccess.open(ITEM_DIR)
+	if dir == null:
+		push_error("Không mở được %s" % ITEM_DIR)
+		return
+	for file_name in dir.get_files():
+		# Bản export sẽ đổi .tres -&gt; .res, xử lý cả hai.
+		if not (file_name.ends_with(".tres") or file_name.ends_with(".res")):
+			continue
+		var res: Resource = load(ITEM_DIR + file_name)
+		if res is ItemData and res.id != "":
+			_cache[res.id] = res
+
+static func get_item(id: String) -&gt; ItemData:
+	_ensure_loaded()
+	return _cache.get(id, null)
+
+static func all_items() -&gt; Array:
+	_ensure_loaded()
+	return _cache.values()</code></pre></figure><blockquote class="note"><p><strong>Bẫy export</strong>: khi export game, Godot có thể chuyển <code>.tres</code> → <code>.res</code> và <code>DirAccess.get_files()</code> trên <code>res://</code> <strong>có thể không liệt kê được file trong PCK</strong> ở một số cấu hình. Cách an toàn hơn cho bản release: giữ một <code>Array[ItemData]</code> <code>@export</code> trong một resource "ItemDatabase.tres" và load nó. Nếu bạn thấy inventory trống sau khi export → đây là nguyên nhân. <strong>Kiểm tra lại khi export lần đầu (chương 10).</strong></p></blockquote><hr class="rule"><h2 id="63-hệ-thống-hội-thoại" class="h h--2">6.3 Hệ thống hội thoại<a class="anchor" href="#63-hệ-thống-hội-thoại" aria-label="Liên kết tới mục này">#</a></h2><h3 id="631-dữ-liệu-dialog" class="h h--3">6.3.1 Dữ liệu dialog<a class="anchor" href="#631-dữ-liệu-dialog" aria-label="Liên kết tới mục này">#</a></h3><p>Dùng JSON — dễ viết, dễ nhờ AI sinh, dễ sửa không cần mở Godot.</p><p><code>data/dialogs/npc_bay.json</code>:</p><figure class="code" data-lang="json"><figcaption><span class="code__lang">JSON</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-json">{
+  "start": {
+    "conditions": [],
+    "next": "bay_first_meet"
+  },
+
+  "bay_first_meet": {
+    "conditions": ["!met_bay"],
+    "speaker": "Ông Bảy",
+    "portrait": "res://art/ui/portraits/bay.png",
+    "lines": [
+      "Đêm nay đèn không sáng, cháu à.",
+      "Ba đêm rồi. Thuyền ngoài kia không thấy đường về."
+    ],
+    "set_flags": ["met_bay"],
+    "next": "bay_ask_fish"
+  },
+
+  "bay_ask_fish": {
+    "conditions": ["!gave_fish"],
+    "speaker": "Ông Bảy",
+    "lines": [
+      "Ta giữ chìa khóa cổng hầm.",
+      "Nhưng bụng ta lép kẹp. Mang cho ta một con cá nục, ta đưa chìa."
+    ],
+    "next": ""
+  },
+
+  "bay_give_fish": {
+    "conditions": ["has_fish", "!gave_fish"],
+    "speaker": "Ông Bảy",
+    "lines": ["Cá nục! Cháu ngoan."],
+    "choices": [
+      {
+        "text": "Đưa cá cho ông Bảy",
+        "require_item": "fish",
+        "consume_item": "fish",
+        "give_item": "rusty_key",
+        "set_flags": ["gave_fish", "has_rusty_key"],
+        "next": "bay_after_fish"
+      },
+      { "text": "Thôi, để lát nữa", "next": "" }
+    ]
+  },
+
+  "bay_after_fish": {
+    "speaker": "Ông Bảy",
+    "lines": [
+      "Cổng ở phía bắc làng. Chìa hơi rỉ, xoay mạnh tay.",
+      "Trong hầm tối. Cẩn thận cái bệ đá ở phòng thứ hai."
+    ],
+    "next": ""
+  },
+
+  "bay_default": {
+    "conditions": ["gave_fish"],
+    "speaker": "Ông Bảy",
+    "lines": ["Đi đi cháu. Trời sắp sáng."],
+    "next": ""
+  }
+}</code></pre></figure><p>Cấu trúc mỗi node:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Khóa</th><th>Ý nghĩa</th></tr></thead><tbody><tr><td><code>conditions</code></td><td>Mảng flag phải thỏa (tiền tố <code>!</code> = phải không có). Rỗng = luôn thỏa</td></tr><tr><td><code>speaker</code></td><td>Tên hiện ở hộp tên</td></tr><tr><td><code>portrait</code></td><td>Đường dẫn ảnh chân dung (tùy chọn)</td></tr><tr><td><code>lines</code></td><td>Mảng câu, mỗi câu 1 lần bấm</td></tr><tr><td><code>choices</code></td><td>Mảng lựa chọn. Nếu có, hiện menu chọn sau khi hết <code>lines</code></td></tr><tr><td><code>set_flags</code></td><td>Flag được set khi node này chạy xong</td></tr><tr><td><code>give_item</code> / <code>consume_item</code> / <code>require_item</code></td><td>Tác động inventory</td></tr><tr><td><code>next</code></td><td>id node tiếp theo. <code>""</code> = kết thúc thoại</td></tr></tbody></table></div><h3 id="632-cây-scene-hộp-thoại" class="h h--3">6.3.2 Cây scene hộp thoại<a class="anchor" href="#632-cây-scene-hộp-thoại" aria-label="Liên kết tới mục này">#</a></h3><p><code>scenes/ui/dialogue_box.tscn</code>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">DialogueBox (Control)                    ← scripts/ui/dialogue_box.gd
+│   anchors: bottom-wide, offset_top = -70
+│   visible = false
+│   mouse_filter = Ignore (cho phần Control ngoài)
+├── Panel (NinePatchRect)                ← khung viền 8-bit
+│   texture = art/ui/dialog_frame.png
+│   patch_margin_left/top/right/bottom = 8
+│   texture_filter = Nearest (trên CanvasItem)
+├── Portrait (TextureRect)               ← 48x48, bên trái, expand_mode Keep Size
+├── SpeakerLabel (Label)                 ← font pixel, trên khung
+├── Text (RichTextLabel)
+│   bbcode_enabled = true
+│   fit_content = false
+│   scroll_active = false
+├── NextArrow (TextureRect)              ← mũi tên "bấm tiếp", nhấp nháy
+└── Choices (VBoxContainer)              ← các Button lựa chọn, visible = false</code></pre></figure><p>Về font: dùng <strong>bitmap font pixel</strong> (<code>.ttf</code> pixel như <code>m5x7</code>, <code>Determination Mono</code>, hoặc <code>BitmapFont</code> tự làm). Với font <code>.ttf</code> pixel, trong Inspector của font resource: bật <code>Antialiasing = None</code>, <code>Hinting = None</code>, <code>Subpixel Positioning = Disabled</code>, và đặt <code>font_size</code> là <strong>đúng bội số</strong> kích thước gốc của font (ví dụ font thiết kế cho 8px → dùng 8, 16, 24). Sai bước này chữ sẽ mờ/lệch.</p><h3 id="633-script-hội-thoại-đầy-đủ" class="h h--3">6.3.3 Script hội thoại (đầy đủ)<a class="anchor" href="#633-script-hội-thoại-đầy-đủ" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/autoload/dialogue.gd
+extends Node
+
+signal dialogue_started
+signal dialogue_finished
+
+## UI được DialogueBox tự đăng ký khi _ready.
+var _ui: Node = null
+var _running: bool = false
+
+func register_ui(ui: Node) -&gt; void:
+	_ui = ui
+
+func is_running() -&gt; bool:
+	return _running
+
+
+## Điểm vào chính. Gọi: await Dialogue.start("res://data/dialogs/npc_bay.json")
+func start(json_path: String, entry_id: String = "") -&gt; void:
+	if _running:
+		return
+	if _ui == null:
+		push_error("Dialogue: chưa có UI đăng ký")
+		return
+
+	var graph := _load_graph(json_path)
+	if graph.is_empty():
+		return
+
+	_running = true
+	GameState.push_input_lock()
+	dialogue_started.emit()
+
+	# Nếu không chỉ định entry, chọn node đầu tiên thỏa điều kiện.
+	var node_id := entry_id if entry_id != "" else _pick_entry(graph)
+
+	while node_id != "" and graph.has(node_id):
+		node_id = await _run_node(graph, node_id)
+
+	_ui.hide_box()
+	_running = false
+	GameState.pop_input_lock()
+	dialogue_finished.emit()
+
+
+func _load_graph(path: String) -&gt; Dictionary:
+	if not FileAccess.file_exists(path):
+		push_error("Dialogue: không thấy file %s" % path)
+		return {}
+	var f := FileAccess.open(path, FileAccess.READ)
+	var text := f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(text)
+	if parsed is not Dictionary:
+		push_error("Dialogue: JSON sai định dạng ở %s" % path)
+		return {}
+	return parsed
+
+
+## Chọn node vào: ưu tiên node có nhiều condition nhất mà vẫn thỏa
+## -&gt; node đặc thù ("bay_give_fish") thắng node chung ("bay_default").
+func _pick_entry(graph: Dictionary) -&gt; String:
+	var best_id := ""
+	var best_specificity := -1
+	for id in graph.keys():
+		var node: Dictionary = graph[id]
+		var conds: Array = node.get("conditions", [])
+		if not GameState.has_all_flags(conds):
+			continue
+		if conds.size() &gt; best_specificity:
+			best_specificity = conds.size()
+			best_id = String(id)
+	return best_id
+
+
+## Chạy 1 node, trả về id node tiếp theo ("" = hết).
+func _run_node(graph: Dictionary, node_id: String) -&gt; String:
+	var node: Dictionary = graph[node_id]
+
+	_ui.set_speaker(String(node.get("speaker", "")))
+	_ui.set_portrait(String(node.get("portrait", "")))
+	_ui.show_box()
+
+	# Hiện từng câu, chờ người chơi bấm.
+	for line in node.get("lines", []):
+		await _ui.show_line(String(line))
+
+	# Áp dụng hiệu ứng của node.
+	_apply_effects(node)
+
+	# Nếu có choices -&gt; hiện menu và chờ chọn.
+	var choices: Array = node.get("choices", [])
+	if not choices.is_empty():
+		var available := _filter_choices(choices)
+		if available.is_empty():
+			return String(node.get("next", ""))
+		var picked_index: int = await _ui.show_choices(available)
+		var chosen: Dictionary = available[picked_index]
+		_apply_effects(chosen)
+		return String(chosen.get("next", ""))
+
+	return String(node.get("next", ""))
+
+
+## Bỏ lựa chọn mà người chơi chưa đủ điều kiện (thiếu item / thiếu flag).
+func _filter_choices(choices: Array) -&gt; Array:
+	var out: Array = []
+	for c in choices:
+		var choice: Dictionary = c
+		var req_item := String(choice.get("require_item", ""))
+		if req_item != "" and not GameState.has_item(req_item):
+			continue
+		if not GameState.has_all_flags(choice.get("conditions", [])):
+			continue
+		out.append(choice)
+	return out
+
+
+## Dùng chung cho node và choice: set flag, cho/lấy item.
+func _apply_effects(data: Dictionary) -&gt; void:
+	for f in data.get("set_flags", []):
+		GameState.set_flag(String(f), true)
+	for f in data.get("clear_flags", []):
+		GameState.set_flag(String(f), false)
+
+	var consume := String(data.get("consume_item", ""))
+	if consume != "":
+		GameState.remove_item(consume, int(data.get("consume_amount", 1)))
+
+	var give := String(data.get("give_item", ""))
+	if give != "":
+		GameState.add_item(give, int(data.get("give_amount", 1)))
+
+	var sfx := String(data.get("sfx", ""))
+	if sfx != "":
+		Audio.play_sfx_by_name(sfx)</code></pre></figure><h3 id="634-script-ui-hộp-thoại-typewriter-choices" class="h h--3">6.3.4 Script UI hộp thoại (typewriter + choices)<a class="anchor" href="#634-script-ui-hộp-thoại-typewriter-choices" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/ui/dialogue_box.gd
+extends Control
+
+## Số ký tự hiện mỗi giây.
+@export var chars_per_second: float = 40.0
+
+@onready var panel: NinePatchRect = $Panel
+@onready var text_label: RichTextLabel = $Text
+@onready var speaker_label: Label = $SpeakerLabel
+@onready var portrait: TextureRect = $Portrait
+@onready var next_arrow: TextureRect = $NextArrow
+@onready var choices_box: VBoxContainer = $Choices
+
+var _line_done := false
+
+
+func _ready() -&gt; void:
+	visible = false
+	Dialogue.register_ui(self)
+	next_arrow.visible = false
+	choices_box.visible = false
+
+
+func show_box() -&gt; void:
+	visible = true
+
+
+func hide_box() -&gt; void:
+	visible = false
+	text_label.text = ""
+	choices_box.visible = false
+
+
+func set_speaker(speaker_name: String) -&gt; void:
+	speaker_label.text = speaker_name
+	speaker_label.visible = speaker_name != ""
+
+
+func set_portrait(path: String) -&gt; void:
+	if path == "" or not ResourceLoader.exists(path):
+		portrait.visible = false
+		portrait.texture = null
+		return
+	portrait.texture = load(path)
+	portrait.visible = true
+
+
+## Hiện 1 câu theo kiểu typewriter, chờ người chơi bấm mới trả về.
+## Bấm giữa lúc đang chạy chữ -&gt; hiện hết câu ngay (skip), bấm lần 2 mới sang câu sau.
+func show_line(line: String) -&gt; void:
+	next_arrow.visible = false
+	text_label.text = line
+	text_label.visible_characters = 0
+	_line_done = false
+
+	var total := text_label.get_total_character_count()
+	var shown := 0.0
+
+	while shown &lt; float(total):
+		shown += chars_per_second * get_process_delta_time()
+		text_label.visible_characters = int(shown)
+		# Tiếng "tíc" mỗi vài ký tự -&gt; cảm giác 8-bit.
+		if int(shown) % 3 == 0:
+			Audio.play_sfx_by_name("text_blip")
+		if _consume_advance_press():
+			break                          # skip: hiện hết câu
+		await get_tree().process_frame
+
+	text_label.visible_characters = -1     # -1 = hiện toàn bộ
+	next_arrow.visible = true
+	_line_done = true
+
+	# Chờ bấm để sang câu tiếp.
+	while true:
+		if _consume_advance_press():
+			break
+		await get_tree().process_frame
+
+	next_arrow.visible = false
+
+
+## Đọc và "tiêu thụ" 1 lần bấm nút tiến.
+func _consume_advance_press() -&gt; bool:
+	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_accept"):
+		return true
+	return false
+
+
+## Hiện danh sách lựa chọn, trả về index đã chọn.
+func show_choices(choices: Array) -&gt; int:
+	# Dọn button cũ.
+	for child in choices_box.get_children():
+		child.queue_free()
+
+	var result := {"index": -1}
+
+	for i in choices.size():
+		var choice: Dictionary = choices[i]
+		var btn := Button.new()
+		btn.text = String(choice.get("text", "..."))
+		btn.focus_mode = Control.FOCUS_ALL
+		# Bind index để biết nút nào được bấm.
+		btn.pressed.connect(func() -&gt; void:
+			result["index"] = i
+		)
+		choices_box.add_child(btn)
+
+	choices_box.visible = true
+	next_arrow.visible = false
+
+	# Focus nút đầu để chơi được bằng bàn phím/gamepad.
+	if choices_box.get_child_count() &gt; 0:
+		(choices_box.get_child(0) as Button).grab_focus()
+
+	while result["index"] &lt; 0:
+		await get_tree().process_frame
+
+	choices_box.visible = false
+	Audio.play_sfx_by_name("menu_confirm")
+	return int(result["index"])</code></pre></figure><blockquote class="note"><p><strong>Ghi chú kỹ thuật</strong>: đọc <code>Input.is_action_just_pressed</code> trong vòng lặp <code>await process_frame</code> hoạt động vì mỗi lần <code>await</code> là qua 1 frame mới. Cách "sạch" hơn là dùng signal + <code>await</code>, nhưng bản này dễ đọc cho người mới và chạy đúng. Nếu bạn thấy bấm 1 lần mà nhảy 2 câu → do cả <code>interact</code> và <code>ui_accept</code> map cùng phím Space/Enter; bỏ 1 trong 2 khỏi điều kiện.</p></blockquote><hr class="rule"><h2 id="64-interactable-npc-item-cửa" class="h h--2">6.4 Interactable: NPC, item, cửa<a class="anchor" href="#64-interactable-npc-item-cửa" aria-label="Liên kết tới mục này">#</a></h2><h3 id="641-npc" class="h h--3">6.4.1 NPC<a class="anchor" href="#641-npc" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/actors/npc.gd
+class_name NPC
+extends Interactable
+
+@export var npc_name: String = "NPC"
+@export_file("*.json") var dialog_file: String = ""
+
+## Nếu set, NPC chỉ tương tác được khi thỏa các flag này.
+@export var required_flags: Array[String] = []
+
+@onready var sprite: AnimatedSprite3D = $Visual/Sprite
+
+
+func _ready() -&gt; void:
+	super._ready()
+	prompt_text = "Nói chuyện"
+	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("idle_down"):
+		sprite.play("idle_down")
+
+
+func interact(by: Node3D) -&gt; void:
+	if not GameState.has_all_flags(required_flags):
+		return
+	if dialog_file == "":
+		push_warning("NPC %s chưa gán dialog_file" % npc_name)
+		return
+	_face_player(by)
+	await Dialogue.start(dialog_file)
+	interacted.emit(by)
+
+
+## Cho NPC "quay mặt" về phía người chơi — chi tiết nhỏ nhưng nâng cảm giác nhiều.
+func _face_player(by: Node3D) -&gt; void:
+	if sprite == null or sprite.sprite_frames == null:
+		return
+	var to_player := by.global_position - global_position
+	var anim := "idle_down"
+	if absf(to_player.x) &gt; absf(to_player.z):
+		anim = "idle_side"
+		sprite.flip_h = to_player.x &lt; 0.0
+	else:
+		anim = "idle_down" if to_player.z &gt; 0.0 else "idle_up"
+	if sprite.sprite_frames.has_animation(anim):
+		sprite.play(anim)</code></pre></figure><p>Cây scene <code>scenes/actors/npc.tscn</code>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">NPC (Area3D)                          ← npc.gd, collision_layer = 4
+├── CollisionShape3D                  CylinderShape3D r=0.6 h=2
+├── Visual (Node3D)
+│   └── Sprite (AnimatedSprite3D)     billboard Fixed Y, alpha_cut Discard
+├── Shadow (Sprite3D)
+└── Exclamation (Sprite3D)            ← dấu "!" nhấp nhô trên đầu khi có việc mới
+    visible = false</code></pre></figure><h3 id="642-item-pickup" class="h h--3">6.4.2 Item pickup<a class="anchor" href="#642-item-pickup" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/props/item_pickup.gd
+class_name ItemPickup
+extends Interactable
+
+@export var item: ItemData
+@export var amount: int = 1
+
+## Flag được set khi nhặt — để item không hồi sinh sau khi load lại level.
+@export var pickup_flag: String = ""
+
+## Câu hiện ra khi nhặt. Để trống -&gt; tự sinh "Nhận được X".
+@export var pickup_message: String = ""
+
+@onready var sprite: Sprite3D = $Sprite
+
+
+func _ready() -&gt; void:
+	super._ready()
+	prompt_text = "Nhặt"
+	# Nếu đã nhặt rồi (theo flag) thì tự xóa mình khi level load.
+	if pickup_flag != "" and GameState.has_flag(pickup_flag):
+		queue_free()
+		return
+	_start_bob()
+
+
+## Nhấp nhô nhẹ cho item dễ thấy.
+func _start_bob() -&gt; void:
+	if sprite == null:
+		return
+	var base_y := sprite.position.y
+	var tw := create_tween().set_loops()
+	tw.tween_property(sprite, "position:y", base_y + 0.12, 0.7) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(sprite, "position:y", base_y, 0.7) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func interact(by: Node3D) -&gt; void:
+	if item == null:
+		push_warning("ItemPickup ở %s chưa gán item" % get_path())
+		return
+
+	GameState.add_item(item.id, amount)
+	if pickup_flag != "":
+		GameState.set_flag(pickup_flag, true)
+
+	Audio.play_sfx_by_name("pickup")
+
+	var msg := pickup_message
+	if msg == "":
+		msg = "Nhận được [b]%s[/b]%s." % [
+			item.display_name,
+			(" x%d" % amount) if amount &gt; 1 else ""
+		]
+	await HUD.show_toast(msg)
+
+	interacted.emit(by)
+	queue_free()</code></pre></figure><h3 id="643-cổng-khóa" class="h h--3">6.4.3 Cổng khóa<a class="anchor" href="#643-cổng-khóa" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/props/locked_gate.gd
+class_name LockedGate
+extends Interactable
+
+## Item cần để mở. Để trống -&gt; chỉ cần flag.
+@export var required_item_id: String = "rusty_key"
+
+## Có tiêu thụ item khi mở không (chìa khóa thường giữ lại).
+@export var consume_item: bool = false
+
+## Flag đánh dấu cổng đã mở — để load lại level cổng vẫn mở.
+@export var open_flag: String = "gate_open"
+
+@export var locked_message: String = "Cổng bị khóa. Có ổ khóa rỉ nặng."
+@export var unlock_message: String = "Chìa khóa vừa khít. Cổng mở ra."
+
+@onready var body: StaticBody3D = $Body
+@onready var sprite: Sprite3D = $Sprite
+@onready var anim: AnimationPlayer = $AnimationPlayer
+
+
+func _ready() -&gt; void:
+	super._ready()
+	prompt_text = "Mở cổng"
+	if GameState.has_flag(open_flag):
+		_set_open(true, false)     # đã mở từ trước -&gt; mở ngay, không animation
+
+
+func interact(_by: Node3D) -&gt; void:
+	if GameState.has_flag(open_flag):
+		return
+
+	if required_item_id != "" and not GameState.has_item(required_item_id):
+		await HUD.show_toast(locked_message)
+		Audio.play_sfx_by_name("locked")
+		return
+
+	if consume_item and required_item_id != "":
+		GameState.remove_item(required_item_id)
+
+	GameState.set_flag(open_flag, true)
+	await HUD.show_toast(unlock_message)
+	Audio.play_sfx_by_name("gate_open")
+	_set_open(true, true)
+
+
+func _set_open(is_open: bool, play_anim: bool) -&gt; void:
+	# Tắt collision -&gt; đi qua được.
+	body.collision_layer = 0 if is_open else 4
+	# Tắt tương tác -&gt; không hiện prompt "Mở cổng" nữa.
+	set_active(not is_open)
+
+	if play_anim and anim and anim.has_animation("open"):
+		anim.play("open")
+	else:
+		sprite.visible = not is_open</code></pre></figure><p>Cây scene <code>scenes/props/locked_gate.tscn</code>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">LockedGate (Area3D)                   ← locked_gate.gd, collision_layer = 4
+├── CollisionShape3D                  BoxShape3D (3, 2, 1.5)  ← vùng tương tác (rộng hơn cổng)
+├── Body (StaticBody3D)               collision_layer = 4     ← vật cản thật
+│   └── CollisionShape3D              BoxShape3D (3, 4, 0.4)
+├── Sprite (Sprite3D)                 texture gate_48x64.png
+└── AnimationPlayer
+    animation "open": Sprite:modulate:a 1 → 0, Sprite:position:y 0 → 0.5 (0.5s)</code></pre></figure><hr class="rule"><h2 id="65-trigger-vùng-area3d" class="h h--2">6.5 Trigger vùng (Area3D)<a class="anchor" href="#65-trigger-vùng-area3d" aria-label="Liên kết tới mục này">#</a></h2><p>Vùng vô hình gây sự kiện khi player bước vào: chuyển màn, cutscene, hiện gợi ý, autosave.</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/systems/area_trigger.gd
+class_name AreaTrigger
+extends Area3D
+
+enum TriggerAction {
+	SET_FLAG,        # chỉ set flag
+	SHOW_TOAST,      # hiện chữ
+	START_DIALOG,    # chạy hội thoại (cutscene nhẹ)
+	CHANGE_LEVEL,    # chuyển màn
+	AUTOSAVE,
+}
+
+@export var action: TriggerAction = TriggerAction.SET_FLAG
+
+## Điều kiện để trigger hoạt động.
+@export var required_flags: Array[String] = []
+
+## Chỉ chạy 1 lần? (Dùng kèm once_flag để nhớ qua save.)
+@export var once: bool = true
+@export var once_flag: String = ""
+
+## Tham số cho từng action.
+@export var flag_to_set: String = ""
+@export var toast_text: String = ""
+@export_file("*.json") var dialog_file: String = ""
+@export_file("*.tscn") var target_level: String = ""
+@export var target_spawn: String = "spawn_default"
+
+var _fired := false
+
+
+func _ready() -&gt; void:
+	collision_layer = 0
+	collision_mask = 2                     # chỉ dò player (bit 2)
+	monitoring = true
+	body_entered.connect(_on_body_entered)
+	if once and once_flag != "" and GameState.has_flag(once_flag):
+		_fired = true
+
+
+func _on_body_entered(body: Node3D) -&gt; void:
+	if _fired:
+		return
+	if not body.is_in_group("player"):
+		return
+	if not GameState.has_all_flags(required_flags):
+		return
+
+	if once:
+		_fired = true
+		if once_flag != "":
+			GameState.set_flag(once_flag, true)
+
+	match action:
+		TriggerAction.SET_FLAG:
+			if flag_to_set != "":
+				GameState.set_flag(flag_to_set, true)
+
+		TriggerAction.SHOW_TOAST:
+			await HUD.show_toast(toast_text)
+
+		TriggerAction.START_DIALOG:
+			if dialog_file != "":
+				await Dialogue.start(dialog_file)
+
+		TriggerAction.CHANGE_LEVEL:
+			if target_level != "":
+				SceneRouter.goto_level(target_level, target_spawn)
+
+		TriggerAction.AUTOSAVE:
+			SaveSystem.save_game(0)        # slot 0 = autosave
+			await HUD.show_toast("Đã lưu.")</code></pre></figure><blockquote class="note"><p><code>body_entered</code> chỉ bắn khi <code>monitoring = true</code> và <strong>mask</strong> của Area3D chứa <strong>layer</strong> của body. Đây là nguyên nhân số 1 của "trigger không chạy". Kiểm tra: Area3D mask phải chứa bit của player layer.</p></blockquote><h3 id="save-point" class="h h--3">Save point<a class="anchor" href="#save-point" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/props/save_point.gd
+class_name SavePoint
+extends Interactable
+
+@export var slot: int = 1
+
+func _ready() -&gt; void:
+	super._ready()
+	prompt_text = "Lưu game"
+
+func interact(_by: Node3D) -&gt; void:
+	await Dialogue.start("res://data/dialogs/save_point.json")
+	if GameState.has_flag("_save_confirmed"):
+		GameState.set_flag("_save_confirmed", false)   # flag tạm, dọn ngay
+		SaveSystem.save_game(slot)
+		Audio.play_sfx_by_name("save")
+		await HUD.show_toast("Đã lưu tiến trình.")</code></pre></figure><p><code>data/dialogs/save_point.json</code>:</p><figure class="code" data-lang="json"><figcaption><span class="code__lang">JSON</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-json">{
+  "ask": {
+    "speaker": "",
+    "lines": ["Một ngọn lửa nhỏ cháy trong hốc đá. Nơi này an toàn."],
+    "choices": [
+      { "text": "Lưu game", "set_flags": ["_save_confirmed"], "next": "" },
+      { "text": "Đi tiếp", "next": "" }
+    ]
+  }
+}</code></pre></figure><blockquote class="note"><p>Mẹo: flag bắt đầu bằng <code>_</code> là <strong>flag tạm</strong>, dùng để truyền tín hiệu từ dialog về code. Đặt quy ước này và <strong>lọc chúng ra khi save</strong> để file save sạch.</p></blockquote><hr class="rule"><h2 id="66-inventory-ui" class="h h--2">6.6 Inventory UI<a class="anchor" href="#66-inventory-ui" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">InventoryUI (Control)                    ← scripts/ui/inventory_ui.gd
+│   visible = false, anchors full rect
+├── Dim (ColorRect)                      color #000000aa
+├── Panel (NinePatchRect)
+│   ├── Title (Label)                    "TÚI ĐỒ"
+│   ├── Grid (GridContainer)             columns = 5
+│   │   └── (ItemSlot được sinh runtime)
+│   └── Detail (VBoxContainer)
+│       ├── DetailName (Label)
+│       ├── DetailDesc (RichTextLabel)
+│       └── UseButton (Button)</code></pre></figure><p><code>scenes/ui/item_slot.tscn</code>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">ItemSlot (Button)                        ← 20x20, custom_minimum_size
+├── Icon (TextureRect)                   16x16, stretch Keep, filter Nearest
+└── Count (Label)                        góc dưới phải, font nhỏ</code></pre></figure><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/ui/inventory_ui.gd
+extends Control
+
+const SLOT_SCENE := preload("res://scenes/ui/item_slot.tscn")
+const MIN_SLOTS := 20                     # luôn hiện đủ ô trống cho gọn mắt
+
+@onready var grid: GridContainer = $Panel/Grid
+@onready var detail_name: Label = $Panel/Detail/DetailName
+@onready var detail_desc: RichTextLabel = $Panel/Detail/DetailDesc
+@onready var use_button: Button = $Panel/Detail/UseButton
+
+var _selected_id: String = ""
+
+
+func _ready() -&gt; void:
+	visible = false
+	GameState.inventory_changed.connect(_refresh)
+	use_button.pressed.connect(_on_use_pressed)
+	_clear_detail()
+
+
+func _unhandled_input(event: InputEvent) -&gt; void:
+	# Không mở túi khi đang thoại.
+	if event.is_action_pressed("inventory"):
+		if Dialogue.is_running():
+			return
+		toggle()
+		get_viewport().set_input_as_handled()
+	elif visible and event.is_action_pressed("cancel"):
+		close()
+		get_viewport().set_input_as_handled()
+
+
+func toggle() -&gt; void:
+	if visible:
+		close()
+	else:
+		open()
+
+
+func open() -&gt; void:
+	_refresh()
+	visible = true
+	GameState.push_input_lock()
+	# Focus ô đầu để chơi được bằng gamepad.
+	for child in grid.get_children():
+		if child is Button and (child as Button).disabled == false:
+			(child as Button).grab_focus()
+			break
+
+
+func close() -&gt; void:
+	visible = false
+	_clear_detail()
+	GameState.pop_input_lock()
+
+
+func _refresh() -&gt; void:
+	for child in grid.get_children():
+		child.queue_free()
+
+	var ids := GameState.inventory.keys()
+	ids.sort()                            # thứ tự ổn định, không nhảy loạn
+
+	for id in ids:
+		var item := ItemDB.get_item(String(id))
+		var slot := SLOT_SCENE.instantiate()
+		grid.add_child(slot)
+		var count: int = GameState.get_item_count(String(id))
+
+		if item:
+			(slot.get_node("Icon") as TextureRect).texture = item.icon
+			slot.tooltip_text = item.display_name
+		var count_label := slot.get_node("Count") as Label
+		count_label.text = str(count) if count &gt; 1 else ""
+
+		slot.pressed.connect(_on_slot_pressed.bind(String(id)))
+
+	# Ô trống cho đủ lưới.
+	for i in maxi(0, MIN_SLOTS - ids.size()):
+		var empty := SLOT_SCENE.instantiate()
+		grid.add_child(empty)
+		(empty as Button).disabled = true
+
+
+func _on_slot_pressed(item_id: String) -&gt; void:
+	_selected_id = item_id
+	var item := ItemDB.get_item(item_id)
+	if item == null:
+		_clear_detail()
+		return
+	detail_name.text = item.display_name
+	detail_desc.text = item.description
+	use_button.visible = item.usable
+	Audio.play_sfx_by_name("menu_move")
+
+
+func _clear_detail() -&gt; void:
+	_selected_id = ""
+	detail_name.text = ""
+	detail_desc.text = ""
+	use_button.visible = false
+
+
+func _on_use_pressed() -&gt; void:
+	if _selected_id == "":
+		return
+	var item := ItemDB.get_item(_selected_id)
+	if item == null or not item.usable:
+		return
+	# Ví dụ: đèn dầu -&gt; set flag để world biết bật sáng.
+	match _selected_id:
+		"lantern":
+			GameState.set_flag("lantern_on", not GameState.has_flag("lantern_on"))
+			await HUD.show_toast(
+				"Đèn sáng lên." if GameState.has_flag("lantern_on") else "Đèn tắt."
+			)
+		_:
+			await HUD.show_toast("Chưa dùng được ở đây.")
+	close()</code></pre></figure><hr class="rule"><h2 id="67-save-load" class="h h--2">6.7 Save / Load<a class="anchor" href="#67-save-load" aria-label="Liên kết tới mục này">#</a></h2><h3 id="so-sánh-3-cách-lưu" class="h h--3">So sánh 3 cách lưu<a class="anchor" href="#so-sánh-3-cách-lưu" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Cách</th><th>Ưu</th><th>Nhược</th><th>Khi nào</th></tr></thead><tbody><tr><td><strong><code>ConfigFile</code></strong></td><td>Đơn giản, dạng INI dễ đọc/sửa tay</td><td>Kém với dữ liệu lồng nhau</td><td>Settings (âm lượng, phím), không phải save game</td></tr><tr><td><strong>JSON (<code>FileAccess</code> + <code>JSON</code>)</strong></td><td>Dễ debug (mở bằng text editor), portable, dễ nhờ AI xử lý, không rủi ro code execution</td><td>Phải tự convert type (Vector3 → array), mất type chặt</td><td>✅ <strong>Save game của ta</strong></td></tr><tr><td><strong><code>Resource</code> + <code>ResourceSaver</code></strong></td><td>Giữ nguyên type Godot (Vector3, Texture), tiện nhất</td><td>⚠️ Load <code>.tres</code> từ file người dùng có thể thực thi code → <strong>rủi ro bảo mật với save chia sẻ</strong>. Đổi cấu trúc resource dễ làm save cũ vỡ</td><td>Dữ liệu nội bộ (item, dialog), không dùng cho save file</td></tr></tbody></table></div><blockquote class="note"><p><strong>Rủi ro bảo mật của <code>Resource</code> save</strong>: file <code>.tres</code>/<code>.res</code> có thể chứa tham chiếu script. Nếu người chơi tải save của người khác về, load nó có thể chạy code. Nếu bạn vẫn muốn dùng Resource, hãy dùng <code>ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)</code> với cờ an toàn phù hợp và <strong>kiểm tra tài liệu bản Godot bạn dùng</strong> về tham số bỏ qua script. Cách đơn giản và an toàn: <strong>dùng JSON</strong>.</p></blockquote><h3 id="save-systemgd" class="h h--3"><code>save_system.gd</code><a class="anchor" href="#save-systemgd" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/autoload/save_system.gd
+extends Node
+
+const SAVE_DIR := "user://saves/"
+const SAVE_VERSION := 1
+
+signal save_completed(slot: int)
+signal load_completed(slot: int)
+
+
+func _ready() -&gt; void:
+	DirAccess.make_dir_recursive_absolute(SAVE_DIR)
+
+
+func _slot_path(slot: int) -&gt; String:
+	return "%ssave_%d.json" % [SAVE_DIR, slot]
+
+
+func has_save(slot: int) -&gt; bool:
+	return FileAccess.file_exists(_slot_path(slot))
+
+
+## Ghi state hiện tại ra file. slot 0 = autosave.
+func save_game(slot: int) -&gt; bool:
+	var state := GameState.to_dict()
+
+	# Lọc flag tạm (tiền tố "_") để file save sạch và không tái hiện tín hiệu cũ.
+	var clean_flags: Dictionary = {}
+	for k in state["flags"].keys():
+		if not String(k).begins_with("_"):
+			clean_flags[k] = state["flags"][k]
+	state["flags"] = clean_flags
+
+	var payload := {
+		"version": SAVE_VERSION,
+		"saved_at": Time.get_datetime_string_from_system(true),
+		"state": state,
+	}
+
+	var f := FileAccess.open(_slot_path(slot), FileAccess.WRITE)
+	if f == null:
+		push_error("Không ghi được save slot %d: %s" % [slot, FileAccess.get_open_error()])
+		return false
+	# "\t" = pretty print, dễ đọc khi debug. Đổi thành "" cho file nhỏ hơn.
+	f.store_string(JSON.stringify(payload, "\t"))
+	f.close()
+
+	save_completed.emit(slot)
+	return true
+
+
+## Đọc file save và áp vào GameState + chuyển tới level đã lưu.
+func load_game(slot: int) -&gt; bool:
+	var path := _slot_path(slot)
+	if not FileAccess.file_exists(path):
+		push_warning("Không có save ở slot %d" % slot)
+		return false
+
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		push_error("Không đọc được save slot %d" % slot)
+		return false
+	var text := f.get_as_text()
+	f.close()
+
+	var parsed: Variant = JSON.parse_string(text)
+	if parsed is not Dictionary:
+		push_error("Save slot %d hỏng (JSON sai)" % slot)
+		return false
+
+	var payload: Dictionary = parsed
+	var version := int(payload.get("version", 0))
+	if version != SAVE_VERSION:
+		payload = _migrate(payload, version)
+		if payload.is_empty():
+			push_error("Save version %d không tương thích" % version)
+			return false
+
+	var state: Dictionary = payload.get("state", {})
+	GameState.from_dict(state)
+
+	var level: String = GameState.current_level_path
+	if level == "" or not ResourceLoader.exists(level):
+		push_error("Save trỏ tới level không tồn tại: %s" % level)
+		return false
+
+	SceneRouter.goto_level(level, GameState.current_spawn)
+	load_completed.emit(slot)
+	return true
+
+
+## Nâng cấp save cũ. Viết từng bước version -&gt; version+1.
+func _migrate(payload: Dictionary, from_version: int) -&gt; Dictionary:
+	# Ví dụ khi bạn lên SAVE_VERSION = 2:
+	# if from_version == 1:
+	#     payload["state"]["new_field"] = default_value
+	#     from_version = 2
+	if from_version == SAVE_VERSION:
+		return payload
+	return {}     # không migrate được -&gt; trả rỗng để caller báo lỗi
+
+
+## Metadata để hiển thị ở menu chọn slot (không load game).
+func get_slot_info(slot: int) -&gt; Dictionary:
+	if not has_save(slot):
+		return {}
+	var f := FileAccess.open(_slot_path(slot), FileAccess.READ)
+	if f == null:
+		return {}
+	var parsed: Variant = JSON.parse_string(f.get_as_text())
+	f.close()
+	if parsed is not Dictionary:
+		return {}
+	var state: Dictionary = parsed.get("state", {})
+	var seconds := int(state.get("playtime", 0.0))
+	return {
+		"saved_at": parsed.get("saved_at", ""),
+		"level": state.get("level", ""),
+		"playtime_text": "%02d:%02d" % [seconds / 3600, (seconds % 3600) / 60],
+		"item_count": (state.get("inventory", {}) as Dictionary).size(),
+	}
+
+
+func delete_save(slot: int) -&gt; void:
+	if has_save(slot):
+		DirAccess.remove_absolute(_slot_path(slot))</code></pre></figure><p>Đường dẫn <code>user://</code> thật nằm ở:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>OS</th><th>Đường dẫn</th></tr></thead><tbody><tr><td>Windows</td><td><code>%APPDATA%\Godot\app_userdata\&lt;tên project&gt;\</code></td></tr><tr><td>macOS</td><td><code>~/Library/Application Support/Godot/app_userdata/&lt;tên project&gt;/</code></td></tr><tr><td>Linux</td><td><code>~/.local/share/godot/app_userdata/&lt;tên project&gt;/</code></td></tr><tr><td>Web</td><td>IndexedDB của browser (không thấy file thật)</td></tr></tbody></table></div><p>Mở nhanh trong editor: <code>Project → Open User Data Folder</code>.</p><h3 id="điều-gì-không-được-lưu-quan-trọng" class="h h--3">Điều gì KHÔNG được lưu (quan trọng)<a class="anchor" href="#điều-gì-không-được-lưu-quan-trọng" aria-label="Liên kết tới mục này">#</a></h3><p>Hệ thống trên chỉ lưu <code>flags</code> + <code>inventory</code> + <code>level</code> + <code>spawn</code>. Nó <strong>không</strong> lưu:</p><ul class="list"><li>Vị trí chính xác của player trong level (chỉ lưu spawn point)</li><li>Vị trí thùng gỗ đã đẩy</li><li>Cửa nào đã mở (trừ khi bạn dùng flag)</li><li>HP, thời gian trong ngày</li></ul><p><strong>Đây là lựa chọn có ý thức, không phải thiếu sót.</strong> Save-tại-điểm (save point) rồi respawn ở đó là mô hình của phần lớn game 8-bit/JRPG — nó đơn giản hơn nhiều so với "lưu toàn bộ world state" và ít bug hơn hẳn.</p><p>Nếu bạn cần lưu chi tiết hơn, mẫu mở rộng: mỗi node cần lưu implement 2 hàm và tự đăng ký:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># Interface: node nào cần lưu thì có 2 hàm này + ở group "persist"
+func save_data() -&gt; Dictionary:
+	return {"pos": [global_position.x, global_position.y, global_position.z]}
+
+func load_data(d: Dictionary) -&gt; void:
+	var p: Array = d.get("pos", [0, 0, 0])
+	global_position = Vector3(p[0], p[1], p[2])</code></pre></figure><p>Rồi trong <code>save_game()</code>: quét <code>get_tree().get_nodes_in_group("persist")</code>, lưu theo <code>get_path()</code> làm khóa. <strong>Chỉ làm cái này khi thật cần</strong> — nó sinh ra cả một lớp bug mới (node path đổi, node không tồn tại khi load...).</p><hr class="rule"><h2 id="68-chuyển-màn-giữ-nguyên-state" class="h h--2">6.8 Chuyển màn giữ nguyên state<a class="anchor" href="#68-chuyển-màn-giữ-nguyên-state" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/autoload/scene_router.gd
+extends Node
+
+signal level_loaded(level: Node)
+
+const FADE_TIME := 0.3
+
+var _world_holder: Node3D = null
+var _fade_rect: ColorRect = null
+var _current_level: Node = null
+var _busy := false
+
+
+func register_world_holder(holder: Node3D) -&gt; void:
+	_world_holder = holder
+
+
+func register_fade_rect(rect: ColorRect) -&gt; void:
+	_fade_rect = rect
+	_fade_rect.color = Color(0, 0, 0, 0)
+	_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+## Điểm vào chính. Chuyển tới level, đặt player ở spawn_name.
+func goto_level(level_path: String, spawn_name: String = "spawn_default") -&gt; void:
+	if _busy:
+		return
+	if _world_holder == null:
+		push_error("SceneRouter: chưa register_world_holder")
+		return
+	if not ResourceLoader.exists(level_path):
+		push_error("SceneRouter: không tồn tại level %s" % level_path)
+		return
+
+	_busy = true
+	GameState.push_input_lock()
+
+	await _fade(1.0)
+
+	# Xóa level cũ. free() ngay (không queue_free) để tránh 2 level cùng tồn tại
+	# trong 1 frame -&gt; tránh 2 player, 2 camera, signal bắn 2 lần.
+	if _current_level != null and is_instance_valid(_current_level):
+		_world_holder.remove_child(_current_level)
+		_current_level.free()
+		_current_level = null
+
+	# Load + instantiate level mới.
+	var packed: PackedScene = load(level_path)
+	var level := packed.instantiate()
+	_world_holder.add_child(level)
+	_current_level = level
+
+	# Ghi lại vị trí hiện tại vào GameState -&gt; save biết chỗ nào.
+	GameState.current_level_path = level_path
+	GameState.current_spawn = spawn_name
+
+	# Đợi 1 frame để _ready của mọi node trong level chạy xong.
+	await get_tree().process_frame
+
+	_place_player(level, spawn_name)
+
+	level_loaded.emit(level)
+
+	await _fade(0.0)
+	GameState.pop_input_lock()
+	_busy = false
+
+
+## Đặt player vào spawn point tương ứng.
+func _place_player(level: Node, spawn_name: String) -&gt; void:
+	var players := get_tree().get_nodes_in_group("player")
+	if players.is_empty():
+		push_warning("Level %s không có node trong group 'player'" % level.name)
+		return
+	var player: Node3D = players[0]
+
+	var marker: Marker3D = null
+	if level.has_method("get_spawn_point"):
+		marker = level.get_spawn_point(spawn_name)
+
+	if marker:
+		player.global_position = marker.global_position
+		# Nếu marker quay hướng nào, cho player nhìn hướng đó.
+		if player is CharacterBody3D:
+			(player as CharacterBody3D).velocity = Vector3.ZERO
+	else:
+		push_warning("Không tìm được spawn '%s' trong %s" % [spawn_name, level.name])
+
+
+## Fade màn hình. target_alpha 1 = đen kín, 0 = trong suốt.
+func _fade(target_alpha: float) -&gt; void:
+	if _fade_rect == null:
+		return
+	var tw := create_tween()
+	tw.tween_property(_fade_rect, "color:a", target_alpha, FADE_TIME)
+	await tw.finished</code></pre></figure><h3 id="vì-sao-player-nằm-trong-level-không-phải-trong-main" class="h h--3">Vì sao player nằm TRONG level, không phải trong <code>Main</code>?<a class="anchor" href="#vì-sao-player-nằm-trong-level-không-phải-trong-main" aria-label="Liên kết tới mục này">#</a></h3><p>Hai kiến trúc:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Kiến trúc</th><th>Player ở đâu</th><th>Ưu</th><th>Nhược</th></tr></thead><tbody><tr><td><strong>A. Player trong mỗi level</strong></td><td>Mỗi <code>.tscn</code> level có 1 instance <code>player.tscn</code></td><td>Dựng/test level độc lập được (F6 chạy riêng level), dễ hiểu</td><td>Player bị xóa/tạo lại mỗi lần đổi màn → mọi state của player phải ở <code>GameState</code></td></tr><tr><td><strong>B. Player trong <code>Main</code>, sống mãi</strong></td><td>1 player duy nhất, level được swap dưới chân</td><td>Player giữ nguyên state, không cần re-init</td><td>Không chạy riêng level được; phải cẩn thận reset vị trí/velocity</td></tr></tbody></table></div><p>Code ở trên viết theo <strong>A</strong> (tìm player trong group sau khi load level). Đây là lựa chọn tốt cho người mới: <strong>bạn có thể mở <code>dungeon_01.tscn</code> và bấm F6 để test ngay phòng đó</strong> — cực kỳ tiết kiệm thời gian khi làm puzzle.</p><p>Điều kiện để A hoạt động: <strong>mọi thứ cần giữ qua màn phải nằm trong <code>GameState</code></strong>, không nằm trong player. Code chương 04 đã tuân thủ điều này.</p><h3 id="maintscn-hoàn-chỉnh" class="h h--3"><code>main.tscn</code> hoàn chỉnh<a class="anchor" href="#maintscn-hoàn-chỉnh" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Main (Node)                              ← scripts/main.gd
+├── WorldHolder (Node3D)
+└── UILayer (CanvasLayer)                 layer = 10
+    ├── HUD (instance hud.tscn)
+    ├── DialogueBox (instance dialogue_box.tscn)
+    ├── InventoryUI (instance inventory_ui.tscn)
+    └── FadeRect (ColorRect)              anchors full, color #00000000, mouse_filter Ignore</code></pre></figure><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/main.gd
+extends Node
+
+const FIRST_LEVEL := "res://scenes/levels/town.tscn"
+
+@onready var world_holder: Node3D = $WorldHolder
+@onready var fade_rect: ColorRect = $UILayer/FadeRect
+
+func _ready() -&gt; void:
+	SceneRouter.register_world_holder(world_holder)
+	SceneRouter.register_fade_rect(fade_rect)
+
+	# Nếu có autosave -&gt; hỏi tiếp tục; ở MVP thì cứ vào game mới.
+	GameState.reset()
+	SceneRouter.goto_level(FIRST_LEVEL, "spawn_default")</code></pre></figure><h3 id="portal-cửa-vàora-giữa-2-màn" class="h h--3">Portal (cửa vào/ra giữa 2 màn)<a class="anchor" href="#portal-cửa-vàora-giữa-2-màn" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/props/level_portal.gd
+class_name LevelPortal
+extends Area3D
+
+@export_file("*.tscn") var target_level: String = ""
+@export var target_spawn: String = "spawn_default"
+
+## Cần flag gì mới đi qua được (ví dụ "gate_open").
+@export var required_flags: Array[String] = []
+@export var blocked_message: String = "Đường này chưa đi được."
+
+func _ready() -&gt; void:
+	collision_layer = 0
+	collision_mask = 2
+	body_entered.connect(_on_body_entered)
+
+func _on_body_entered(body: Node3D) -&gt; void:
+	if not body.is_in_group("player"):
+		return
+	if not GameState.has_all_flags(required_flags):
+		await HUD.show_toast(blocked_message)
+		return
+	SceneRouter.goto_level(target_level, target_spawn)</code></pre></figure><p>Cặp portal cho game mẫu:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Portal</th><th>Ở level</th><th>target_level</th><th>target_spawn</th><th>required_flags</th></tr></thead><tbody><tr><td><code>ToDungeon</code></td><td>town</td><td><code>dungeon_01.tscn</code></td><td><code>spawn_from_town</code></td><td><code>["gate_open"]</code></td></tr><tr><td><code>ToTown</code></td><td>dungeon_01</td><td><code>town.tscn</code></td><td><code>spawn_from_dungeon</code></td><td><code>[]</code></td></tr><tr><td><code>ToTop</code></td><td>dungeon_01</td><td><code>lighthouse_top.tscn</code></td><td><code>spawn_default</code></td><td><code>["torch_puzzle_done"]</code></td></tr></tbody></table></div><hr class="rule"><h2 id="69-hud-prompt-toast-tiêu-đề-khu-vực" class="h h--2">6.9 HUD: prompt + toast + tiêu đề khu vực<a class="anchor" href="#69-hud-prompt-toast-tiêu-đề-khu-vực" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/ui/hud.gd  (autoload cả scene: scenes/ui/hud.tscn)
+extends CanvasLayer
+
+@onready var prompt: Control = $Prompt
+@onready var prompt_label: Label = $Prompt/Label
+@onready var toast: Control = $Toast
+@onready var toast_label: RichTextLabel = $Toast/Label
+@onready var area_title: Label = $AreaTitle
+
+var _prompt_world_pos: Vector3 = Vector3.ZERO
+var _prompt_active := false
+
+
+func _ready() -&gt; void:
+	prompt.visible = false
+	toast.visible = false
+	area_title.visible = false
+
+
+func _process(_delta: float) -&gt; void:
+	if not _prompt_active:
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	# Vật ở sau camera -&gt; ẩn prompt, nếu không nó hiện lộn chỗ.
+	if cam.is_position_behind(_prompt_world_pos):
+		prompt.visible = false
+		return
+	prompt.visible = true
+	prompt.position = cam.unproject_position(_prompt_world_pos) - prompt.size * 0.5
+
+
+func show_prompt(text: String, world_pos: Vector3) -&gt; void:
+	prompt_label.text = "[E] " + text
+	_prompt_world_pos = world_pos
+	_prompt_active = true
+
+
+func hide_prompt() -&gt; void:
+	_prompt_active = false
+	prompt.visible = false
+
+
+## Hiện dòng chữ tạm ở giữa dưới. await được để chờ nó xong.
+func show_toast(text: String, duration: float = 1.8) -&gt; void:
+	toast_label.text = text
+	toast.visible = true
+	toast.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(toast, "modulate:a", 1.0, 0.15)
+	tw.tween_interval(duration)
+	tw.tween_property(toast, "modulate:a", 0.0, 0.3)
+	await tw.finished
+	toast.visible = false
+
+
+## Tên khu vực hiện ra khi vào map mới (kiểu JRPG).
+func show_area_title(text: String) -&gt; void:
+	area_title.text = text
+	area_title.visible = true
+	area_title.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(area_title, "modulate:a", 1.0, 0.4)
+	tw.tween_interval(1.6)
+	tw.tween_property(area_title, "modulate:a", 0.0, 0.6)
+	await tw.finished
+	area_title.visible = false</code></pre></figure><blockquote class="note"><p><code>unproject_position</code> cho toạ độ trong <strong>viewport logic</strong> (320×180 nếu dùng stretch mode <code>viewport</code>). Nếu prompt hiện lệch chỗ, khả năng cao là bạn đang trộn 2 hệ toạ độ (SubViewport vs màn hình). Xem lại chương 01 mục 1.6.</p></blockquote><hr class="rule"><h2 id="610-câu-đố-3-thứ-tự-ba-đuốc-state-machine-nhỏ" class="h h--2">6.10 Câu đố 3: thứ tự ba đuốc (state machine nhỏ)<a class="anchor" href="#610-câu-đố-3-thứ-tự-ba-đuốc-state-machine-nhỏ" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/props/torch_puzzle.gd
+# Gắn vào một Node3D cha chứa 3 đuốc.
+extends Node3D
+
+## Thứ tự đúng, theo TÊN node đuốc. Manh mối nằm ở bài hát bà Tám (màn 1).
+@export var correct_order: Array[String] = ["TorchSea", "TorchMoon", "TorchStone"]
+
+## Flag set khi giải xong.
+@export var success_flag: String = "torch_puzzle_done"
+
+## Cửa mở ra khi giải xong.
+@export var door: Node3D
+
+var _sequence: Array[String] = []
+
+
+func _ready() -&gt; void:
+	if GameState.has_flag(success_flag):
+		_open_door(false)
+		return
+	# Kết nối signal từ từng đuốc con.
+	for child in get_children():
+		if child is Torch:
+			(child as Torch).lit.connect(_on_torch_lit.bind(child.name))
+
+
+func _on_torch_lit(torch_name: String) -&gt; void:
+	_sequence.append(torch_name)
+
+	# Kiểm tra từng bước: sai ngay lập tức thì reset (feedback nhanh, không chờ hết 3).
+	var idx := _sequence.size() - 1
+	if _sequence[idx] != correct_order[idx]:
+		await _fail()
+		return
+
+	if _sequence.size() == correct_order.size():
+		await _succeed()
+
+
+func _fail() -&gt; void:
+	Audio.play_sfx_by_name("puzzle_fail")
+	await HUD.show_toast("Ba ngọn đuốc phụt tắt cùng lúc.", 1.2)
+	_sequence.clear()
+	for child in get_children():
+		if child is Torch:
+			(child as Torch).extinguish()
+
+
+func _succeed() -&gt; void:
+	GameState.set_flag(success_flag, true)
+	Audio.play_sfx_by_name("puzzle_solved")
+	await HUD.show_toast("Tiếng đá nghiến vang lên từ phía sau.", 2.0)
+	_open_door(true)
+
+
+func _open_door(animate: bool) -&gt; void:
+	if door == null:
+		return
+	if door.has_method("open"):
+		door.open(animate)
+	else:
+		door.visible = false</code></pre></figure><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/props/torch.gd
+class_name Torch
+extends Interactable
+
+signal lit
+
+@export var is_lit: bool = false
+
+@onready var flame: Sprite3D = $Flame
+@onready var light: OmniLight3D = $Light
+
+
+func _ready() -&gt; void:
+	super._ready()
+	prompt_text = "Thắp đuốc"
+	_apply_visual()
+
+
+func interact(_by: Node3D) -&gt; void:
+	if is_lit:
+		return
+	# Cần có đèn dầu để thắp — buộc người chơi tìm đèn trước.
+	if not GameState.has_item("lantern"):
+		await HUD.show_toast("Cần một nguồn lửa.")
+		return
+	is_lit = true
+	_apply_visual()
+	Audio.play_sfx_by_name("torch_light")
+	lit.emit()
+
+
+func extinguish() -&gt; void:
+	is_lit = false
+	_apply_visual()
+
+
+func _apply_visual() -&gt; void:
+	flame.visible = is_lit
+	light.visible = is_lit
+	prompt_text = "" if is_lit else "Thắp đuốc"
+	set_active(not is_lit)</code></pre></figure><hr class="rule"><h2 id="611-thứ-tự-làm-test-từng-bước" class="h h--2">6.11 Thứ tự làm &amp; test từng bước<a class="anchor" href="#611-thứ-tự-làm-test-từng-bước" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Bước</th><th>Làm gì</th><th>Test bằng cách</th></tr></thead><tbody><tr><td>1</td><td><code>GameState</code> autoload</td><td>Trong <code>_ready</code> của player: <code>GameState.set_flag("test")</code> rồi <code>print(GameState.has_flag("test"))</code></td></tr><tr><td>2</td><td><code>Interactable</code> + 1 Area3D in <code>print</code></td><td>Nhấn E gần nó thấy log</td></tr><tr><td>3</td><td><code>HUD.show_toast</code></td><td>Nhấn E → thấy chữ</td></tr><tr><td>4</td><td><code>DialogueBox</code> + <code>Dialogue</code> với 1 file JSON 2 dòng</td><td>Nói chuyện xong quay lại điều khiển được</td></tr><tr><td>5</td><td><code>ItemData</code> + <code>ItemPickup</code></td><td>Nhặt → toast → item biến mất</td></tr><tr><td>6</td><td><code>InventoryUI</code></td><td>Bấm I → thấy item vừa nhặt</td></tr><tr><td>7</td><td><code>LockedGate</code></td><td>Chưa có chìa → toast "khóa". Có chìa → mở</td></tr><tr><td>8</td><td>Dialog có <code>choices</code> + <code>give_item</code></td><td>Đưa cá → nhận chìa</td></tr><tr><td>9</td><td><code>SceneRouter</code> + 2 level + portal</td><td>Đi qua đi lại, inventory còn nguyên</td></tr><tr><td>10</td><td><code>SaveSystem</code></td><td>Save → thoát game → chạy lại → load → đúng level, đúng item</td></tr><tr><td>11</td><td><code>torch_puzzle</code></td><td>Bật sai thứ tự → reset. Đúng → cửa mở</td></tr></tbody></table></div><p><strong>Đừng nhảy bước.</strong> Mỗi bước là 1 commit Git.</p><hr class="rule"><h2 id="612-bài-tập" class="h h--2">6.12 Bài tập<a class="anchor" href="#612-bài-tập" aria-label="Liên kết tới mục này">#</a></h2><ol class="list"><li>Làm xong bước 1–4 ở 6.11. Viết <code>npc_bay.json</code> đầy đủ như 6.3.1 và nói chuyện được với ông Bảy qua đủ 3 trạng thái (chưa gặp / chưa có cá / đã đưa cá).</li><li>Thêm ItemData cho cả 6 item ở 6.2. Đặt <code>fish.tres</code> vào một <code>ItemPickup</code> ở bến tàu.</li><li>Thêm <code>SavePoint</code> vào phòng 1 dungeon. Save, thoát, load → xác nhận về đúng dungeon với đúng item.</li><li>Thêm dấu <code>!</code> trên đầu NPC khi có việc mới: <code>Exclamation.visible = GameState.has_all_flags(["has_fish", "!gave_fish"])</code>, cập nhật khi <code>GameState.flag_changed</code> bắn.</li><li>Làm câu đố 2 (bệ trọng lượng): <code>Area3D</code> bệ, <code>body_entered</code> kiểm tra body là <code>PushableCrate</code> → set flag <code>crate_on_plate</code> → mở cửa. Xử lý cả <code>body_exited</code> (đẩy hộp ra thì cửa đóng lại).</li><li>Thêm menu chính: <code>scenes/ui/main_menu.tscn</code> với "Chơi mới" / "Tiếp tục" (dùng <code>SaveSystem.get_slot_info(0)</code> để hiện thời gian chơi) / "Thoát".</li><li><strong>Nâng cao</strong>: viết một hàm debug <code>GameState.debug_dump()</code> in ra toàn bộ flags + inventory. Gán vào phím F3. Bạn sẽ dùng nó liên tục.</li></ol><hr class="rule"><h2 id="613-lỗi-thường-gặp" class="h h--2">6.13 Lỗi thường gặp<a class="anchor" href="#613-lỗi-thường-gặp" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Triệu chứng</th><th>Nguyên nhân</th><th>Cách sửa</th></tr></thead><tbody><tr><td><code>GameState</code> báo null</td><td>Chưa đăng ký autoload, hoặc gõ sai tên (phân biệt hoa/thường)</td><td>Project Settings → Globals, tên phải khớp chính xác</td></tr><tr><td>Autoload báo lỗi khi khởi động</td><td>Thứ tự autoload sai (<code>SceneRouter</code> load trước <code>GameState</code>)</td><td>Kéo <code>GameState</code> lên trên</td></tr><tr><td>Nhấn E mở thoại 2 lần</td><td>Cả <code>_input</code> và <code>_unhandled_input</code> xử lý, hoặc <code>interact</code>+<code>ui_accept</code> cùng phím</td><td><code>set_input_as_handled()</code>; bỏ 1 action khỏi điều kiện</td></tr><tr><td>Thoại xong không điều khiển được</td><td><code>pop_input_lock</code> không được gọi (lỗi giữa đường, <code>await</code> treo)</td><td>Kiểm tra mọi nhánh return đều pop lock; dùng <code>_lock_count</code> đếm để debug</td></tr><tr><td>Typewriter nhảy hết chữ ngay</td><td><code>is_action_just_pressed</code> còn true từ lần bấm mở thoại</td><td>Chờ 1 frame trước khi vào vòng lặp, hoặc dùng flag "đã nhả nút"</td></tr><tr><td>Chữ pixel bị mờ</td><td>Font <code>.ttf</code> bật antialiasing, hoặc <code>font_size</code> không phải bội số</td><td>Tắt Antialiasing/Hinting/Subpixel; dùng size là bội số của size gốc</td></tr><tr><td>Item nhặt rồi, load lại level lại thấy</td><td>Không dùng <code>pickup_flag</code></td><td>Set <code>pickup_flag</code> cho mỗi ItemPickup, tên duy nhất</td></tr><tr><td>Cổng mở rồi, quay lại màn thấy đóng</td><td>Không đọc flag trong <code>_ready</code></td><td>Xem <code>LockedGate._ready()</code> mục 6.4.3</td></tr><tr><td><code>body_entered</code> của Area3D không bắn</td><td><code>collision_mask</code> Area không chứa layer của player; hoặc <code>monitoring = false</code></td><td>Area mask = bit của player (2)</td></tr><tr><td>Trigger chuyển màn bắn liên tục (loop)</td><td>Spawn point nằm TRONG vùng trigger của portal ngược lại</td><td>Đặt spawn cách portal ≥ 2 unit</td></tr><tr><td>Chuyển màn xong player ở gốc (0,0,0)</td><td>Level thiếu node <code>Spawns</code> hoặc sai tên marker</td><td>Kiểm tra <code>get_spawn_point</code>; đọc warning trong Output</td></tr><tr><td>Chuyển màn xong có 2 camera</td><td>Level cũ chưa <code>free()</code> xong</td><td>Dùng <code>free()</code> thay <code>queue_free()</code> như code 6.8</td></tr><tr><td>Save không có file</td><td>Chưa <code>make_dir_recursive_absolute</code></td><td>Xem <code>_ready</code> của <code>SaveSystem</code>; mở <code>Project → Open User Data Folder</code> để kiểm</td></tr><tr><td>Load save cũ crash sau khi bạn sửa code</td><td>Cấu trúc dữ liệu đổi</td><td>Tăng <code>SAVE_VERSION</code> + viết <code>_migrate</code>, hoặc xóa save cũ khi đang dev</td></tr><tr><td>Save trên web không giữ</td><td>Browser IndexedDB — cần flush</td><td>Godot web tự flush, nhưng chế độ ẩn danh/xóa cache sẽ mất. Cảnh báo người chơi</td></tr><tr><td>Inventory trống sau khi export</td><td><code>DirAccess</code> không liệt kê được <code>.tres</code> trong PCK</td><td>Xem cảnh báo ở 6.2 — dùng resource database <code>@export Array[ItemData]</code></td></tr><tr><td>Puzzle đuốc: bật đúng vẫn fail</td><td><code>correct_order</code> dùng tên node khác thực tế</td><td>In <code>child.name</code> ra để đối chiếu chính xác</td></tr><tr><td><code>await</code> trong <code>_ready</code> làm node chưa sẵn sàng</td><td><code>await</code> làm <code>_ready</code> trả về sớm</td><td>Tách logic async ra hàm riêng, gọi bằng <code>call_deferred</code></td></tr></tbody></table></div>
+    </article>
+
+    <nav class="pager" aria-label="Chuyển chương"><a class="pager__link pager__link--prev" href="05-world-diorama.html"><span class="pager__dir">← Chương 05</span><span class="pager__title">Dựng thế giới: diorama 3D với art 2D</span></a><a class="pager__link pager__link--next" href="07-story-design.html"><span class="pager__dir">Chương 07 →</span><span class="pager__title">Cốt truyện &amp; thiết kế game phiêu lưu</span></a></nav>
+
+    <footer class="foot">
+      <p class="foot__note">Viết theo Godot 4.3–4.5 — kiểm tra lại trên bản bạn dùng</p>
+      <p class="foot__links"><a href="index.html">← Về mục lục</a> · <a href="#main">↑ Đầu trang</a></p>
+    </footer>
+  </main>
+</div>
+
+<button class="totop" id="toTop" type="button" aria-label="Lên đầu trang">↑</button>
+<div class="scrim" id="scrim" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>

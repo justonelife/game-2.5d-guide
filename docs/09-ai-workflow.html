@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#12101a">
+<meta name="description" content="Chương dày nhất: workflow thực dụng với Claude Code/Cursor, prompt mẫu, bẫy, AGENTS.md template">
+<title>09 Workflow làm game Godot với AI · Godot 4 2.5D</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2312101a'/%3E%3Crect x='6' y='2' width='4' height='3' fill='%23ffc857'/%3E%3Crect x='5' y='5' width='6' height='2' fill='%23ffe3a0'/%3E%3Crect x='6' y='7' width='4' height='6' fill='%235ad1e6'/%3E%3Crect x='4' y='13' width='8' height='2' fill='%23474063'/%3E%3C/svg%3E">
+<script>/* set the saved theme before first paint so there is no flash */(function(){try{var t=localStorage.getItem("g25d-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body class="page page--chapter">
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="progressBar"></span></div>
+
+<header class="topbar">
+  <a class="topbar__back" href="index.html"><span aria-hidden="true">←</span> Mục lục</a>
+  <span class="topbar__num">09</span>
+  <button class="iconbtn themebtn" type="button" data-theme-toggle aria-pressed="false" aria-label="Đổi nền sáng/tối">
+    <span class="themebtn__txt">Sáng</span>
+  </button>
+  <button class="iconbtn topbar__toc" id="tocToggle" type="button" aria-expanded="false" aria-controls="tocPanel">
+    <span class="topbar__toc-icon" aria-hidden="true"></span><span>Mục</span>
+  </button>
+</header>
+
+<div class="shell">
+  <nav class="toc" id="tocPanel" aria-label="Mục lục chương">
+    <p class="toc__title">Trong chương này</p>
+    <ol class="toc__list"><li class="toc__item toc__item--h2"><a href="#91-mô-hình-tư-duy-đúng-về-ai-trong-làm-game">9.1 Mô hình tư duy đúng về AI trong làm game</a></li><li class="toc__item toc__item--h3"><a href="#ai-không-phải-cái-gì">AI không phải cái gì</a></li><li class="toc__item toc__item--h3"><a href="#ai-là-cái-gì">AI là cái gì</a></li><li class="toc__item toc__item--h3"><a href="#chia-việc-theo-ai-giỏi-cái-gì">Chia việc theo "ai giỏi cái gì"</a></li><li class="toc__item toc__item--h2"><a href="#92-ba-chế-độ-làm-việc---biết-chọn-đúng-chế-độ">9.2 Ba chế độ làm việc — biết chọn đúng chế độ</a></li><li class="toc__item toc__item--h3"><a href="#luật-chọn-chế-độ">Luật chọn chế độ</a></li><li class="toc__item toc__item--h2"><a href="#93-thiết-lập-claude-code-cho-project-godot">9.3 Thiết lập Claude Code cho project Godot</a></li><li class="toc__item toc__item--h3"><a href="#931-cấu-trúc-file-context">9.3.1 Cấu trúc file context</a></li><li class="toc__item toc__item--h3"><a href="#932-những-gì-ai-không-làm-được-với-godot-giới-hạn-cứng">9.3.2 Những gì AI không làm được với Godot (giới hạn cứng)</a></li><li class="toc__item toc__item--h3"><a href="#933-quy-tắc-về-file-tscn-và-tres">9.3.3 Quy tắc về file .tscn và .tres</a></li><li class="toc__item toc__item--h3"><a href="#934-permission-allowlist-gợi-ý">9.3.4 Permission / allowlist gợi ý</a></li><li class="toc__item toc__item--h2"><a href="#94-agentsmd---template-đầy-đủ-copy-thẳng">9.4 AGENTS.md — template đầy đủ (copy thẳng)</a></li><li class="toc__item toc__item--h3"><a href="#vì-sao-template-này-hiệu-quả">Vì sao template này hiệu quả</a></li><li class="toc__item toc__item--h3"><a href="#docstasksmd---bộ-nhớ-giữa-các-session">docs/TASKS.md — bộ nhớ giữa các session</a></li><li class="toc__item toc__item--h2"><a href="#95-cách-giao-việc-giải-phẫu-một-prompt-tốt">9.5 Cách giao việc: giải phẫu một prompt tốt</a></li><li class="toc__item toc__item--h3"><a href="#công-thức-6-phần">Công thức 6 phần</a></li><li class="toc__item toc__item--h3"><a href="#so-sánh-prompt">So sánh prompt</a></li><li class="toc__item toc__item--h3"><a href="#rút-ngắn-dùng-agentsmd-làm-chỗ-chứa-phần-lặp">Rút ngắn: dùng AGENTS.md làm chỗ chứa phần lặp</a></li><li class="toc__item toc__item--h3"><a href="#6-prompt-mẫu-cho-6-hệ-thống-của-game-này">6 prompt mẫu cho 6 hệ thống của game này</a></li><li class="toc__item toc__item--h2"><a href="#96-vòng-lặp-thực-tế-generate-read-test-fix">9.6 Vòng lặp thực tế: Generate → Read → Test → Fix</a></li><li class="toc__item toc__item--h3"><a href="#961-vì-sao-read-là-bước-không-thể-bỏ">9.6.1 Vì sao "READ" là bước không thể bỏ</a></li><li class="toc__item toc__item--h3"><a href="#962-checklist-đọc-code-ai-dùng-mỗi-lần">9.6.2 Checklist đọc code AI (dùng mỗi lần)</a></li><li class="toc__item toc__item--h3"><a href="#963-cách-báo-lỗi-cho-ai-quan-trọng-hơn-bạn-nghĩ">9.6.3 Cách báo lỗi cho AI (quan trọng hơn bạn nghĩ)</a></li><li class="toc__item toc__item--h3"><a href="#964-khi-ai-sửa-3-lần-vẫn-không-được">9.6.4 Khi AI sửa 3 lần vẫn không được</a></li><li class="toc__item toc__item--h2"><a href="#97-việc-nào-giao-ai-việc-nào-tự-làm">9.7 Việc nào giao AI, việc nào tự làm</a></li><li class="toc__item toc__item--h3"><a href="#quy-tắc-rút-ra">Quy tắc rút ra</a></li><li class="toc__item toc__item--h2"><a href="#98-bẫy-thường-gặp---catalog-đầy-đủ">9.8 Bẫy thường gặp — catalog đầy đủ</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-1---ai-bịa-api-trộn-godot-3-vào-godot-4">Bẫy 1 — AI bịa API / trộn Godot 3 vào Godot 4</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-2---code-chạy-nhưng-sai-thiết-kế">Bẫy 2 — Code chạy nhưng sai thiết kế</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-3---scope-creep-im-lặng">Bẫy 3 — Scope creep im lặng</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-4---over-engineering">Bẫy 4 — Over-engineering</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-5---ai-phá-kiến-trúc-khi-thêm-tính-năng">Bẫy 5 — AI phá kiến trúc khi thêm tính năng</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-6---xung-đột-version-giữa-các-câu-trả-lời">Bẫy 6 — Xung đột version giữa các câu trả lời</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-7---ai-không-biết-cấu-trúc-scene-thật-của-bạn">Bẫy 7 — AI không biết cấu trúc scene thật của bạn</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-8---signal-nối-nhiều-lần">Bẫy 8 — Signal nối nhiều lần</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-9---await-làm-ready-trả-về-sớm">Bẫy 9 — await làm _ready trả về sớm</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-10---context-bị-loãng-trong-session-dài">Bẫy 10 — Context bị "loãng" trong session dài</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-11---tin-lời-ai-về-performance">Bẫy 11 — Tin lời AI về performance</a></li><li class="toc__item toc__item--h3"><a href="#bẫy-12---đọc-tài-liệu-godot-bằng-ai-thay-vì-đọc-docs">Bẫy 12 — Đọc tài liệu Godot bằng AI thay vì đọc docs</a></li><li class="toc__item toc__item--h2"><a href="#99-kỹ-thuật-giữ-kiến-trúc-prompt-patterns">9.9 Kỹ thuật giữ kiến trúc: prompt patterns</a></li><li class="toc__item toc__item--h3"><a href="#pattern-1---explain-before-code">Pattern 1 — "Explain before code"</a></li><li class="toc__item toc__item--h3"><a href="#pattern-2---diff-only">Pattern 2 — "Diff only"</a></li><li class="toc__item toc__item--h3"><a href="#pattern-3---constraint-list">Pattern 3 — "Constraint list"</a></li><li class="toc__item toc__item--h3"><a href="#pattern-4---budget">Pattern 4 — "Budget"</a></li><li class="toc__item toc__item--h3"><a href="#pattern-5---adversarial-review">Pattern 5 — "Adversarial review"</a></li><li class="toc__item toc__item--h3"><a href="#pattern-6---two-options">Pattern 6 — "Two options"</a></li><li class="toc__item toc__item--h3"><a href="#pattern-7---test-first-spec">Pattern 7 — "Test-first spec"</a></li><li class="toc__item toc__item--h3"><a href="#pattern-8---naive-first">Pattern 8 — "Naive first"</a></li><li class="toc__item toc__item--h2"><a href="#910-ai-cho-asset-workflow-thực-tế">9.10 AI cho asset: workflow thực tế</a></li><li class="toc__item toc__item--h3"><a href="#9101-vòng-lặp-asset">9.10.1 Vòng lặp asset</a></li><li class="toc__item toc__item--h3"><a href="#9102-dùng-claude-code-để-quản-lý-asset-pipeline">9.10.2 Dùng Claude Code để quản lý asset pipeline</a></li><li class="toc__item toc__item--h3"><a href="#9103-prompt-cho-asset-bảng-nhanh">9.10.3 Prompt cho asset: bảng nhanh</a></li><li class="toc__item toc__item--h2"><a href="#911-ai-cho-nội-dung-dialog-tên-mô-tả">9.11 AI cho nội dung: dialog, tên, mô tả</a></li><li class="toc__item toc__item--h3"><a href="#9111-sinh-dialog-hàng-loạt">9.11.1 Sinh dialog hàng loạt</a></li><li class="toc__item toc__item--h3"><a href="#9112-sinh-biến-thể-rất-hữu-ích">9.11.2 Sinh biến thể (rất hữu ích)</a></li><li class="toc__item toc__item--h3"><a href="#9113-kiểm-duyệt-nội-dung-ai---checklist">9.11.3 Kiểm duyệt nội dung AI — checklist</a></li><li class="toc__item toc__item--h2"><a href="#912-debug-với-ai">9.12 Debug với AI</a></li><li class="toc__item toc__item--h3"><a href="#9121-ba-loại-lỗi-và-cách-xử-lý-khác-nhau">9.12.1 Ba loại lỗi và cách xử lý khác nhau</a></li><li class="toc__item toc__item--h3"><a href="#9122-debug-lỗi-im-lặng-tạo-dữ-liệu-trước-hỏi-sau">9.12.2 Debug lỗi im lặng: tạo dữ liệu trước, hỏi sau</a></li><li class="toc__item toc__item--h3"><a href="#9123-mẫu-print-debug-hữu-ích">9.12.3 Mẫu print debug hữu ích</a></li><li class="toc__item toc__item--h3"><a href="#9124-debug-cheat-nhảy-trạng-thái">9.12.4 Debug cheat: nhảy trạng thái</a></li><li class="toc__item toc__item--h2"><a href="#913-test-tự-động-với-ai">9.13 Test tự động với AI</a></li><li class="toc__item toc__item--h3"><a href="#9131-cái-gì-test-được-cái-gì-không">9.13.1 Cái gì test được, cái gì không</a></li><li class="toc__item toc__item--h3"><a href="#9132-framework">9.13.2 Framework</a></li><li class="toc__item toc__item--h3"><a href="#9133-prompt-viết-test">9.13.3 Prompt viết test</a></li><li class="toc__item toc__item--h3"><a href="#9134-chạy-test-không-cần-gui">9.13.4 Chạy test không cần GUI</a></li><li class="toc__item toc__item--h3"><a href="#9135-test-hồi-quy-cho-save">9.13.5 Test hồi quy cho save</a></li><li class="toc__item toc__item--h2"><a href="#914-quản-lý-context-session">9.14 Quản lý context &amp; session</a></li><li class="toc__item toc__item--h3"><a href="#9141-khi-nào-bắt-đầu-session-mới">9.14.1 Khi nào bắt đầu session mới</a></li><li class="toc__item toc__item--h3"><a href="#9142-quy-trình-đóng-session-5-phút-tiết-kiệm-rất-nhiều">9.14.2 Quy trình đóng session (5 phút, tiết kiệm rất nhiều)</a></li><li class="toc__item toc__item--h3"><a href="#9143-chia-task-đúng-kích-cỡ">9.14.3 Chia task đúng kích cỡ</a></li><li class="toc__item toc__item--h3"><a href="#9144-kiểu-prompt-làm-nhiều-task---dùng-cẩn-thận">9.14.4 Kiểu prompt "làm nhiều task" — dùng cẩn thận</a></li><li class="toc__item toc__item--h2"><a href="#915-git-discipline-khi-làm-với-ai">9.15 Git discipline khi làm với AI</a></li><li class="toc__item toc__item--h3"><a href="#quy-tắc">Quy tắc</a></li><li class="toc__item toc__item--h3"><a href="#vòng-lặp-git-thực-tế">Vòng lặp Git thực tế</a></li><li class="toc__item toc__item--h3"><a href="#commit-message---nhờ-ai-viết">Commit message — nhờ AI viết</a></li><li class="toc__item toc__item--h3"><a href="#khi-ai-làm-hỏng-thứ-gì">Khi AI làm hỏng thứ gì</a></li><li class="toc__item toc__item--h2"><a href="#916-chi-phí-thời-gian-thực-tế">9.16 Chi phí &amp; thời gian thực tế</a></li><li class="toc__item toc__item--h3"><a href="#9161-ai-tiết-kiệm-bao-nhiêu---số-thật">9.16.1 AI tiết kiệm bao nhiêu — số thật</a></li><li class="toc__item toc__item--h3"><a href="#9162-chỗ-ai-làm-bạn-chậm-hơn">9.16.2 Chỗ AI làm bạn CHẬM HƠN</a></li><li class="toc__item toc__item--h3"><a href="#9163-nguyên-tắc-phân-bổ">9.16.3 Nguyên tắc phân bổ</a></li><li class="toc__item toc__item--h2"><a href="#917-checklist-trước-khi-merge-code-ai">9.17 Checklist trước khi merge code AI</a></li><li class="toc__item toc__item--h2"><a href="#918-ví-dụ-session-hoàn-chỉnh-từ-đầu-tới-commit">9.18 Ví dụ session hoàn chỉnh (từ đầu tới commit)</a></li><li class="toc__item toc__item--h3"><a href="#bối-cảnh">Bối cảnh</a></li><li class="toc__item toc__item--h3"><a href="#lượt-1---bạn">Lượt 1 — bạn</a></li><li class="toc__item toc__item--h3"><a href="#lượt-2---ai-trả-về">Lượt 2 — AI trả về</a></li><li class="toc__item toc__item--h3"><a href="#lượt-3---bạn-đọc-code-bước-read">Lượt 3 — bạn đọc code (bước READ)</a></li><li class="toc__item toc__item--h3"><a href="#lượt-4---ai-trả-diff">Lượt 4 — AI trả diff</a></li><li class="toc__item toc__item--h3"><a href="#lượt-5---bạn-dựng-scene-test">Lượt 5 — bạn dựng scene + test</a></li><li class="toc__item toc__item--h3"><a href="#lượt-6---bạn-báo-bug">Lượt 6 — bạn báo bug</a></li><li class="toc__item toc__item--h3"><a href="#lượt-7---ai-phân-tích">Lượt 7 — AI phân tích</a></li><li class="toc__item toc__item--h3"><a href="#lượt-8---kết-thúc">Lượt 8 — kết thúc</a></li><li class="toc__item toc__item--h3"><a href="#bài-học-từ-session-này">Bài học từ session này</a></li><li class="toc__item toc__item--h2"><a href="#919-bài-tập">9.19 Bài tập</a></li><li class="toc__item toc__item--h2"><a href="#920-lỗi-thường-gặp-khi-làm-việc-với-ai">9.20 Lỗi thường gặp (khi làm việc với AI)</a></li><li class="toc__item toc__item--h2"><a href="#921-tóm-lại-10-quy-tắc">9.21 Tóm lại: 10 quy tắc</a></li></ol>
+  </nav>
+
+  <main class="main" id="main">
+    <article class="prose">
+      <p class="eyebrow">Chương 09 · 1969 dòng</p>
+      <h1 class="title">Workflow làm game Godot với AI</h1>
+      <p class="lede"><strong>Chương dày nhất</strong>: workflow thực dụng với Claude Code/Cursor, prompt mẫu, bẫy, <code>AGENTS.md</code> template</p>
+      <hr class="rule rule--tight">
+      <blockquote class="note"><p>Chương dày nhất của tài liệu. Đọc <strong>sớm</strong>, dùng <strong>liên tục</strong>.</p><p>Mục tiêu: bạn dùng AI như một <strong>lập trình viên junior nhanh, kiến thức rộng, không có ký ức, và đôi khi tự tin sai</strong>. Nếu bạn quản lý được một người như vậy, bạn sẽ đi rất nhanh. Nếu không, bạn sẽ có 3000 dòng code không ai hiểu và một game không chạy.</p></blockquote><hr class="rule"><h2 id="91-mô-hình-tư-duy-đúng-về-ai-trong-làm-game" class="h h--2">9.1 Mô hình tư duy đúng về AI trong làm game<a class="anchor" href="#91-mô-hình-tư-duy-đúng-về-ai-trong-làm-game" aria-label="Liên kết tới mục này">#</a></h2><h3 id="ai-không-phải-cái-gì" class="h h--3">AI <strong>không</strong> phải cái gì<a class="anchor" href="#ai-không-phải-cái-gì" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Ngộ nhận</th><th>Thực tế</th></tr></thead><tbody><tr><td>"AI làm game hộ tôi"</td><td>AI viết được từng hệ thống. Nó <strong>không</strong> biết game của bạn có vui hay không</td></tr><tr><td>"Tôi không cần học Godot"</td><td>Bạn cần đủ hiểu để <strong>đọc</strong> code và <strong>biết nó sai chỗ nào</strong>. Không cần viết từ đầu, cần đọc được</td></tr><tr><td>"AI biết Godot 4 rất rõ"</td><td>AI biết Godot rất rộng nhưng <strong>trộn lẫn Godot 3 và 4</strong>, và trộn cả API của các bản 4.x khác nhau</td></tr><tr><td>"Code AI chạy tức là đúng"</td><td>Code chạy ≠ đúng thiết kế. Đây là loại bug đắt nhất</td></tr><tr><td>"Prompt càng dài càng tốt"</td><td>Prompt <strong>cụ thể</strong> tốt hơn prompt <strong>dài</strong></td></tr></tbody></table></div><h3 id="ai-là-cái-gì" class="h h--3">AI <strong>là</strong> cái gì<a class="anchor" href="#ai-là-cái-gì" aria-label="Liên kết tới mục này">#</a></h3><p>Một cộng sự có đặc tính rất cụ thể:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Đặc tính</th><th>Hệ quả cho workflow</th></tr></thead><tbody><tr><td><strong>Rất nhanh ở boilerplate</strong></td><td>Giao nó viết inventory/save/dialog/UI — những thứ đã có mẫu chuẩn trên đời</td></tr><tr><td><strong>Không có ký ức giữa các session</strong></td><td>Bạn phải viết context ra file (<code>AGENTS.md</code>). Đây là việc quan trọng nhất chương này</td></tr><tr><td><strong>Không chạy được game của bạn</strong></td><td>Nó <strong>không thấy</strong> game bị lag, sprite bị mờ, cảm giác điều khiển nặng. Bạn là mắt và tay của nó</td></tr><tr><td><strong>Tự tin ngay cả khi sai</strong></td><td>Bạn phải verify. Không có cách nào bỏ bước này</td></tr><tr><td><strong>Rất giỏi giải thích</strong></td><td>Dùng nó để <strong>học</strong>: "giải thích tại sao <code>move_and_slide</code> cần gọi cuối <code>_physics_process</code>"</td></tr><tr><td><strong>Xu hướng over-engineer</strong></td><td>Nó sẽ đề nghị state machine 5 class cho một cái cửa. Bạn phải nói "đơn giản hơn"</td></tr><tr><td><strong>Đọc file rất nhanh</strong></td><td>Trong Claude Code, hãy để nó <strong>đọc code hiện có</strong> trước khi viết. Đừng dán code vào chat</td></tr></tbody></table></div><h3 id="chia-việc-theo-ai-giỏi-cái-gì" class="h h--3">Chia việc theo "ai giỏi cái gì"<a class="anchor" href="#chia-việc-theo-ai-giỏi-cái-gì" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">        AI GIỎI                          BẠN GIỎI
+   ┌──────────────────┐            ┌──────────────────┐
+   │ Boilerplate      │            │ Game feel        │
+   │ Cấu trúc dữ liệu │            │ Level design     │
+   │ Parse JSON       │            │ Cân bằng độ khó  │
+   │ UI layout code   │            │ Cái gì VUI       │
+   │ Refactor máy móc │            │ Ưu tiên scope    │
+   │ Giải thích API   │            │ Nghệ thuật       │
+   │ Viết test        │            │ Quyết định cuối  │
+   │ Sinh dữ liệu     │            │ Test thật        │
+   └──────────────────┘            └──────────────────┘
+              │                             │
+              └──────────► GAME ◄───────────┘</code></pre></figure><p><strong>Ranh giới cứng</strong>: mọi quyết định về <em>cảm giác</em> và <em>thiết kế</em> là của bạn. Mọi việc <em>thi công theo spec</em> giao được cho AI.</p><hr class="rule"><h2 id="92-ba-chế-độ-làm-việc---biết-chọn-đúng-chế-độ" class="h h--2">9.2 Ba chế độ làm việc — biết chọn đúng chế độ<a class="anchor" href="#92-ba-chế-độ-làm-việc---biết-chọn-đúng-chế-độ" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Chế độ</th><th>Cách làm</th><th>Dùng cho</th><th>Rủi ro</th></tr></thead><tbody><tr><td><strong>Autopilot</strong> — giao task, để nó tự làm nhiều file</td><td>"Viết cả hệ thống inventory theo AGENTS.md"</td><td>Boilerplate đã có spec rõ, code mới hoàn toàn</td><td>Cao: có thể đi lệch kiến trúc, sinh nhiều file khó review</td></tr><tr><td><strong>Copilot</strong> — giao 1 file, 1 hàm</td><td>"Trong <code>player.gd</code>, thêm hàm <code>_push_bodies()</code> như spec dưới"</td><td>Sửa code đã có, thêm tính năng nhỏ</td><td>Thấp</td></tr><tr><td><strong>Pair</strong> — hỏi/thảo luận trước, code sau</td><td>"Có 2 cách làm save system. Phân tích trade-off, đừng viết code"</td><td>Quyết định kiến trúc, debug khó, học</td><td>Rất thấp, chậm hơn</td></tr></tbody></table></div><h3 id="luật-chọn-chế-độ" class="h h--3">Luật chọn chế độ<a class="anchor" href="#luật-chọn-chế-độ" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Code mới, spec rõ, ít ràng buộc với code cũ   → Autopilot
+Sửa code đã chạy được                          → Copilot
+Chưa biết nên làm thế nào                      → Pair TRƯỚC, rồi Autopilot/Copilot
+Đang có bug không hiểu                         → Pair
+Sắp đổi kiến trúc                              → Pair (bắt buộc)</code></pre></figure><p>Lỗi phổ biến nhất của người mới: dùng <strong>Autopilot khi chưa biết mình muốn gì</strong>. Kết quả là AI quyết định kiến trúc thay bạn, và bạn phát hiện điều đó 2 tuần sau.</p><hr class="rule"><h2 id="93-thiết-lập-claude-code-cho-project-godot" class="h h--2">9.3 Thiết lập Claude Code cho project Godot<a class="anchor" href="#93-thiết-lập-claude-code-cho-project-godot" aria-label="Liên kết tới mục này">#</a></h2><h3 id="931-cấu-trúc-file-context" class="h h--3">9.3.1 Cấu trúc file context<a class="anchor" href="#931-cấu-trúc-file-context" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">project-root/
+├── AGENTS.md              ← context chính (mẫu ở 9.4). CLAUDE.md cũng được nhận
+├── docs/
+│   ├── DESIGN.md          ← design doc (bảng thi công chương 07)
+│   ├── ARCHITECTURE.md    ← sơ đồ hệ thống + quy ước
+│   └── TASKS.md           ← task đang làm, đã xong (thay cho ký ức của AI)
+└── ...</code></pre></figure><p>Claude Code tự đọc <code>AGENTS.md</code> / <code>CLAUDE.md</code> ở gốc project mỗi session. Đây là cách bạn "cấp ký ức" cho nó.</p><h3 id="932-những-gì-ai-không-làm-được-với-godot-giới-hạn-cứng" class="h h--3">9.3.2 Những gì AI <strong>không</strong> làm được với Godot (giới hạn cứng)<a class="anchor" href="#932-những-gì-ai-không-làm-được-với-godot-giới-hạn-cứng" aria-label="Liên kết tới mục này">#</a></h3><p>Nói thẳng trước để bạn không mất thời gian:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Việc</th><th>Vì sao không</th></tr></thead><tbody><tr><td><strong>Mở editor Godot, kéo thả node</strong></td><td>Không có GUI</td></tr><tr><td><strong>Chạy game và xem kết quả</strong></td><td>Không thấy hình ảnh game</td></tr><tr><td><strong>Cảm nhận game feel</strong></td><td>Không chơi được</td></tr><tr><td><strong>Sửa file <code>.tscn</code> an toàn</strong></td><td><code>.tscn</code> là text nhưng có <code>id</code> tham chiếu chéo — sửa tay dễ <strong>hỏng scene</strong>. ⚠️ Xem 9.3.3</td></tr><tr><td><strong>Import asset</strong></td><td>Import là hành động trong editor</td></tr><tr><td><strong>Debug lỗi runtime không có log</strong></td><td>Cần bạn dán log</td></tr></tbody></table></div><p>Vì vậy vòng lặp thực tế <strong>luôn</strong> là: <strong>AI viết code → bạn dựng scene trong editor → bạn chạy → bạn dán kết quả → AI sửa.</strong></p><h3 id="933-quy-tắc-về-file-tscn-và-tres" class="h h--3">9.3.3 Quy tắc về file <code>.tscn</code> và <code>.tres</code><a class="anchor" href="#933-quy-tắc-về-file-tscn-và-tres" aria-label="Liên kết tới mục này">#</a></h3><p>Đây là bẫy nghiêm trọng, cần luật rõ:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>File</th><th>AI được làm gì</th></tr></thead><tbody><tr><td><code>.gd</code> (script)</td><td>✅ Đọc, viết, sửa tự do</td></tr><tr><td><code>.json</code> (dialog, data)</td><td>✅ Đọc, viết, sửa tự do</td></tr><tr><td><code>.md</code> (docs)</td><td>✅ Tự do</td></tr><tr><td><code>.tres</code> (Resource dữ liệu như ItemData)</td><td>⚠️ <strong>Chỉ được tạo mới</strong>, không sửa file có sẵn (dễ làm hỏng <code>[ext_resource]</code> id)</td></tr><tr><td><code>.tscn</code> (scene)</td><td>❌ <strong>KHÔNG sửa.</strong> Thay vào đó: AI <strong>mô tả cây scene</strong> bằng text, bạn dựng trong editor</td></tr><tr><td><code>project.godot</code></td><td>❌ Không sửa trực tiếp. AI <strong>liệt kê setting cần đổi</strong>, bạn đổi trong Project Settings</td></tr><tr><td><code>.godot/</code></td><td>❌ Tuyệt đối không</td></tr></tbody></table></div><blockquote class="note"><p>Vì sao không cho sửa <code>.tscn</code>: format có dòng <code>[ext_resource type="Script" uid="uid://xxxx" path="..." id="1_abc"]</code>. Các <code>id</code> và <code>uid</code> tham chiếu chéo nhau. AI sửa tay rất dễ tạo scene mở lên là mất node, hoặc Godot báo "Failed loading resource". Rủi ro cao, lợi ích thấp — <strong>cấm luôn cho gọn</strong>.</p><p>Ngoại lệ: nếu bạn cần AI sinh scene, hãy để nó viết một <strong>script <code>@tool</code> tạo node bằng code</strong> rồi bạn chạy script đó trong editor. An toàn hơn nhiều.</p></blockquote><h3 id="934-permission-allowlist-gợi-ý" class="h h--3">9.3.4 Permission / allowlist gợi ý<a class="anchor" href="#934-permission-allowlist-gợi-ý" aria-label="Liên kết tới mục này">#</a></h3><p>Cho phép AI chạy các lệnh đọc mà không phải hỏi mỗi lần (giảm ma sát rất nhiều):</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Cho phép:  git status, git diff, git log, git show
+           grep, rg, find, ls, cat, head, tail, wc
+           godot --headless --check-only &lt;file&gt;      (kiểm tra syntax GDScript)
+
+Hỏi trước: git commit, git push, git checkout
+           rm, mv (bất kỳ)
+           ghi vào .tscn / .tres / project.godot</code></pre></figure><p>Lệnh kiểm syntax cực hữu ích, cho AI tự verify:</p><figure class="code" data-lang="bash"><figcaption><span class="code__lang">Shell</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-bash"># Kiểm syntax 1 script mà không mở editor
+godot --headless --check-only --script scripts/actors/player.gd
+
+# Import lại project + kiểm mọi thứ (chậm hơn, dùng khi đổi nhiều file)
+godot --headless --quit</code></pre></figure><blockquote class="note"><p><strong>Kiểm tra lại</strong>: cờ CLI của Godot đổi giữa các bản (<code>--check-only</code>, <code>--script</code>, <code>--quit-after</code>). Chạy <code>godot --help</code> trên bản bạn dùng để lấy cờ đúng, rồi ghi lệnh đúng đó vào <code>AGENTS.md</code>.</p></blockquote><hr class="rule"><h2 id="94-agentsmd---template-đầy-đủ-copy-thẳng" class="h h--2">9.4 <code>AGENTS.md</code> — template đầy đủ (copy thẳng)<a class="anchor" href="#94-agentsmd---template-đầy-đủ-copy-thẳng" aria-label="Liên kết tới mục này">#</a></h2><p>Đây là tài sản có giá trị nhất trong chương này. Nó là "bộ nhớ dài hạn" của AI về project bạn.</p><figure class="code" data-lang="markdown"><figcaption><span class="code__lang">Markdown</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-markdown"># AGENTS.md — Ngọn Đèn Cá Nục
+
+## 0. Đọc cái này trước khi viết bất kỳ dòng code nào
+
+Project này là game phiêu lưu 2.5D pixel art bằng **Godot 4.4** (GDScript, KHÔNG C#).
+Trước khi sửa gì: đọc `docs/ARCHITECTURE.md` và file bạn định sửa. Đừng đoán nội dung file.
+
+## 1. Ràng buộc kỹ thuật (KHÔNG được vi phạm)
+
+- **Godot 4.4**, GDScript, renderer **Compatibility** (nhắm web).
+  Nếu bạn không chắc một API có tồn tại ở 4.4, **nói ra** thay vì đoán.
+- **Không dùng C#, không dùng GDNative/GDExtension.**
+- **Không thêm addon/plugin bên thứ ba** mà không hỏi tôi trước.
+- 1 world unit = 1 mét = **16 pixel art**.
+- Base resolution **320×180**, stretch mode `viewport`, scale mode `integer`.
+- Nhân vật là `CharacterBody3D`; sprite là `AnimatedSprite3D` billboard `FIXED_Y`,
+  `alpha_cut = ALPHA_CUT_DISCARD`, `texture_filter = NEAREST`, `shaded = false`.
+- Camera: `Camera3D` **orthographic**, `size = 11.25`, pitch -30°, yaw 0°.
+
+## 2. Bạn ĐƯỢC và KHÔNG ĐƯỢC sửa file gì
+
+| Được sửa | Không được sửa |
+|---|---|
+| `scripts/**/*.gd` | `**/*.tscn` — hãy MÔ TẢ cây scene bằng text, tôi dựng trong editor |
+| `data/**/*.json` | `project.godot` — hãy LIỆT KÊ setting cần đổi |
+| `docs/**/*.md` | `.godot/**` |
+| Tạo mới `data/items/*.tres` | Sửa `.tres` đã có |
+
+## 3. Kiến trúc — đây là hợp đồng, đừng phá
+
+### Autoload (thứ tự đúng như liệt kê)
+| Tên | File | Vai trò |
+|---|---|---|
+| `GameState` | `scripts/autoload/game_state.gd` | **Nguồn sự thật duy nhất** cho flags + inventory + level hiện tại |
+| `SceneRouter` | `scripts/autoload/scene_router.gd` | Chuyển màn, fade, đặt player vào spawn |
+| `Dialogue` | `scripts/autoload/dialogue.gd` | Chạy hội thoại từ file JSON |
+| `SaveSystem` | `scripts/autoload/save_system.gd` | Ghi/đọc save JSON ở `user://saves/` |
+| `Audio` | `scripts/autoload/audio.gd` | BGM crossfade + SFX pool |
+| `HUD` | `scenes/ui/hud.tscn` | Prompt tương tác, toast, tiêu đề khu vực |
+
+### Luật kiến trúc bất di bất dịch
+1. **Chỉ `GameState` giữ dữ liệu tiến trình.** Không autoload nào khác được có state cần save.
+2. **Mọi tiến trình cốt truyện là boolean flag** trong `GameState.flags`. Không tạo hệ quest riêng.
+3. **Node không gọi trực tiếp node khác qua `get_node("../../X")`.** Dùng signal hoặc autoload.
+4. **Mọi vật tương tác kế thừa `Interactable`** (`scripts/systems/interactable.gd`) và override `interact(by)`.
+5. **Mọi level kế thừa `LevelBase`** và có node con `Spawns` chứa các `Marker3D`.
+6. **Player nằm trong từng level** (không phải trong Main) — để test riêng level bằng F6 được.
+7. **Khóa input dùng `GameState.push_input_lock()` / `pop_input_lock()`** (đếm, không phải boolean).
+8. **Save chỉ lưu flags + inventory + level + spawn.** Không lưu vị trí chi tiết của world.
+
+### Collision layer (3D Physics)
+| Bit | Tên | Dùng cho |
+|---|---|---|
+| 1 | world | sàn, tường |
+| 2 | player | nhân vật |
+| 3 | interactable | Area3D của NPC/item/cửa |
+| 4 | solid_prop | thùng, prop chắn đường |
+| 5 | trigger | vùng chuyển màn |
+
+## 4. Quy ước code
+
+- File &amp; thư mục: `snake_case`. Node: `PascalCase`. Class: `class_name PascalCase`.
+- **Luôn dùng static typing**: `var x: int = 0`, `func f(a: String) -&gt; void:`.
+- `@export` cho mọi thứ designer cần tinh chỉnh (tốc độ, thời gian, đường dẫn file).
+- **Comment bằng tiếng Việt**, giải thích **TẠI SAO** không phải **CÁI GÌ**.
+  ✅ `# Đếm thay vì boolean: dialog + cutscene có thể khóa input cùng lúc`
+  ❌ `# Tăng biến lock_count lên 1`
+- Không dùng `get_node()` trong `_process`/`_physics_process`. Cache vào `@onready`.
+- Không magic number. Đưa vào `const` hoặc `@export`.
+- Signal đặt tên ở dạng quá khứ/sự kiện: `flag_changed`, `dialogue_finished`.
+- Hàm private tiền tố `_`.
+
+## 5. Cách trả lời tôi
+
+Mặc định, khi tôi giao một task:
+1. **Nếu task &gt; 1 file hoặc &gt; ~80 dòng: mô tả kế hoạch trước, chờ tôi OK.** Đừng viết code luôn.
+2. Khi viết code: cho **đường dẫn file đầy đủ** ở đầu mỗi block.
+3. Nếu task cần đổi scene: cho **cây scene dạng text** (tên node, kiểu node, property cần set).
+4. Nếu task cần đổi Project Settings: **liệt kê** `mục → setting → giá trị`.
+5. Kết thúc bằng **"Cách test"**: 3–5 bước cụ thể tôi làm trong editor để verify.
+6. **Nêu rõ chỗ bạn không chắc** ("`alpha_cut` enum có thể tên khác ở 4.4, kiểm tra F1").
+
+## 6. Nói KHÔNG với những thứ này
+
+- ❌ Đề nghị đổi engine / đổi ngôn ngữ / thêm framework.
+- ❌ Tạo abstraction cho thứ chỉ dùng 1 lần. Game này nhỏ; **thà lặp code còn hơn thêm 3 lớp trừu tượng**.
+- ❌ Viết hệ thống tôi chưa yêu cầu ("tôi thêm luôn hệ combat cho bạn").
+- ❌ Sửa file ngoài phạm vi task. Nếu thấy bug ở chỗ khác: **báo, đừng sửa**.
+- ❌ Xóa comment của tôi.
+- ❌ Refactor "cho đẹp" khi tôi chỉ hỏi thêm 1 tính năng.
+
+## 7. Trạng thái hiện tại
+
+Xem `docs/TASKS.md` để biết cái gì đã xong / đang làm.
+Xem `docs/DESIGN.md` để biết game này là gì và 3 câu đố hoạt động thế nào.
+
+## 8. Lệnh hữu ích
+
+```bash
+# Kiểm syntax 1 script (không mở editor)
+godot --headless --check-only --script scripts/actors/player.gd
+
+# Xem diff trước khi tôi commit
+git diff --stat &amp;&amp; git diff
+```
+(Cờ CLI có thể khác giữa bản Godot — nếu lỗi, chạy `godot --help`.)
+
+## 9. Danh sách flag chính thức (đừng tự thêm flag mới mà không hỏi)
+
+`met_bay`, `has_fish`, `gave_fish`, `has_rusty_key`, `gate_open`,
+`heard_song`, `crate_on_plate`, `torch_puzzle_done`, `lighthouse_lit`
+
+Flag tiền tố `_` là flag tạm (tín hiệu từ dialog về code), bị lọc khi save.</code></pre></figure><h3 id="vì-sao-template-này-hiệu-quả" class="h h--3">Vì sao template này hiệu quả<a class="anchor" href="#vì-sao-template-này-hiệu-quả" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Mục</th><th>Giải quyết vấn đề gì</th></tr></thead><tbody><tr><td>§1 Ràng buộc</td><td>AI đề xuất C#/Godot 3 API/addon lạ</td></tr><tr><td>§2 File được sửa</td><td>AI làm hỏng <code>.tscn</code></td></tr><tr><td>§3 Kiến trúc</td><td>AI tạo hệ thống song song với hệ thống đã có</td></tr><tr><td>§4 Quy ước</td><td>Code AI trông "không cùng project"</td></tr><tr><td>§5 Cách trả lời</td><td>AI viết 400 dòng khi bạn chỉ muốn xem kế hoạch</td></tr><tr><td>§6 Nói KHÔNG</td><td>Over-engineering + scope creep</td></tr><tr><td>§7 Trạng thái</td><td>AI không có ký ức giữa session</td></tr><tr><td>§9 Flag list</td><td>AI tự bịa flag <code>player_has_key</code> khi đã có <code>has_rusty_key</code></td></tr></tbody></table></div><p><strong>Cập nhật <code>AGENTS.md</code> khi kiến trúc đổi.</strong> File này cũ đi thì nó bắt đầu gây hại thay vì giúp.</p><h3 id="docstasksmd---bộ-nhớ-giữa-các-session" class="h h--3"><code>docs/TASKS.md</code> — bộ nhớ giữa các session<a class="anchor" href="#docstasksmd---bộ-nhớ-giữa-các-session" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="markdown"><figcaption><span class="code__lang">Markdown</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-markdown"># TASKS
+
+## Đang làm
+- [ ] Câu đố 3 (thứ tự đuốc) — đã có `torch.gd`, thiếu `torch_puzzle.gd`
+      Ghi chú: đã quyết định reset ngay ở bước sai đầu tiên, không chờ hết 3.
+
+## Xong
+- [x] GameState + flags + inventory (commit a1b2c3)
+- [x] Dialogue system + npc_bay.json (commit d4e5f6)
+- [x] ItemPickup + InventoryUI (commit 789abc)
+- [x] LockedGate + Portal town↔dungeon (commit def012)
+
+## Quyết định đã chốt (đừng đề xuất lại)
+- Save = JSON, KHÔNG dùng Resource (lý do: rủi ro code execution khi load save lạ)
+- Player nằm trong từng level, không phải trong Main (lý do: test level bằng F6)
+- Không có combat trong MVP
+- Camera orthographic, không perspective (lý do: pixel đều)
+
+## Bug đã biết, chưa sửa
+- Đẩy thùng vào góc P1 thì hơi khó kéo ra (chấp nhận được, có nút reset)
+- Toast và area title có thể chồng nhau nếu vào màn rồi nhặt item ngay</code></pre></figure><p>Mục <strong>"Quyết định đã chốt"</strong> cực kỳ quan trọng — nó ngăn AI đề xuất lại cùng một thứ bạn đã bác bỏ 3 lần.</p><hr class="rule"><h2 id="95-cách-giao-việc-giải-phẫu-một-prompt-tốt" class="h h--2">9.5 Cách giao việc: giải phẫu một prompt tốt<a class="anchor" href="#95-cách-giao-việc-giải-phẫu-một-prompt-tốt" aria-label="Liên kết tới mục này">#</a></h2><h3 id="công-thức-6-phần" class="h h--3">Công thức 6 phần<a class="anchor" href="#công-thức-6-phần" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">1. NGỮ CẢNH   — file nào, hệ thống nào, đang ở đâu trong project
+2. MỤC TIÊU   — cái gì phải hoạt động sau khi xong (mô tả bằng hành vi)
+3. RÀNG BUỘC  — không được làm gì, phải dùng gì có sẵn
+4. ĐỊNH DẠNG  — muốn nhận gì: code / kế hoạch / cây scene / phân tích
+5. TIÊU CHÍ   — làm sao biết là xong
+6. KHÔNG CHẮC — chỗ nào bạn muốn nó nói ra thay vì đoán</code></pre></figure><h3 id="so-sánh-prompt" class="h h--3">So sánh prompt<a class="anchor" href="#so-sánh-prompt" aria-label="Liên kết tới mục này">#</a></h3><p><strong>❌ Prompt tệ:</strong></p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">làm hệ thống inventory cho game godot</code></pre></figure><p>Vấn đề: không biết Godot mấy, không biết kiến trúc đã có, không biết UI thế nào, không biết item là gì. AI sẽ <strong>bịa toàn bộ</strong> và bạn nhận về code không khớp project.</p><p><strong>⚠️ Prompt tạm được:</strong></p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Làm hệ thống inventory cho game Godot 4.4 của tôi. Item lưu trong Dictionary.
+Có UI dạng lưới. Đọc AGENTS.md trước.</code></pre></figure><p>Tốt hơn, nhưng vẫn thiếu: bao nhiêu ô? có dùng item không? ai gọi mở túi? lưu vào đâu?</p><p><strong>✅ Prompt tốt:</strong></p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">NGỮ CẢNH
+Đọc AGENTS.md và scripts/autoload/game_state.gd trước.
+GameState đã có: inventory Dictionary {item_id: count}, các hàm add_item /
+remove_item / has_item / get_item_count, và signal inventory_changed.
+ItemData resource đã có ở scripts/systems/item_data.gd (id, display_name,
+description, icon, usable, quest_item).
+
+MỤC TIÊU
+Viết UI túi đồ:
+- Nhấn action "inventory" mở/đóng. Nhấn "cancel" đóng.
+- Không mở được khi đang thoại (Dialogue.is_running()).
+- Lưới 5 cột, luôn hiện tối thiểu 20 ô (ô trống là Button disabled).
+- Click 1 ô -&gt; panel bên phải hiện display_name + description.
+- Nút "Dùng" chỉ hiện khi item.usable == true.
+- Mở túi phải khóa input player (push_input_lock), đóng thì pop.
+- Điều khiển được bằng bàn phím/gamepad (grab_focus ô đầu khi mở).
+
+RÀNG BUỘC
+- Chỉ tạo 1 file mới: scripts/ui/inventory_ui.gd
+- KHÔNG sửa game_state.gd. Nếu bạn thấy cần sửa, nói ra thay vì tự sửa.
+- Dùng preload cho scene ô item; không dùng get_node trong _process.
+- Static typing đầy đủ, comment tiếng Việt giải thích tại sao.
+
+ĐỊNH DẠNG
+1. Cây scene dạng text cho inventory_ui.tscn và item_slot.tscn
+   (tên node, kiểu node, property quan trọng cần set trong Inspector)
+2. Code inventory_ui.gd đầy đủ
+3. Cách test: 4-5 bước
+
+TIÊU CHÍ XONG
+Nhặt cá ở bến -&gt; bấm I -&gt; thấy icon cá + số lượng -&gt; click -&gt; thấy mô tả -&gt;
+bấm I lần nữa đóng -&gt; di chuyển được lại.
+
+CHỖ KHÔNG CHẮC
+Nếu tên property/enum nào bạn không chắc ở Godot 4.4 (ví dụ TextureRect
+stretch mode, GridContainer columns), ghi rõ "kiểm tra lại" thay vì đoán.</code></pre></figure><p>Prompt này dài, nhưng bạn viết <strong>một lần</strong> và nhận về code dùng được ngay. So với 4 vòng sửa qua lại thì nhanh hơn nhiều.</p><h3 id="rút-ngắn-dùng-agentsmd-làm-chỗ-chứa-phần-lặp" class="h h--3">Rút ngắn: dùng <code>AGENTS.md</code> làm chỗ chứa phần lặp<a class="anchor" href="#rút-ngắn-dùng-agentsmd-làm-chỗ-chứa-phần-lặp" aria-label="Liên kết tới mục này">#</a></h3><p>Sau khi có <code>AGENTS.md</code> tốt, prompt hằng ngày ngắn lại:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc AGENTS.md.
+
+Task: UI túi đồ (scripts/ui/inventory_ui.gd + cây scene).
+Hành vi: [8 gạch đầu dòng như trên]
+Tiêu chí xong: nhặt cá -&gt; bấm I -&gt; thấy icon -&gt; click thấy mô tả -&gt; đóng -&gt; đi được.</code></pre></figure><p>Đây là lý do <code>AGENTS.md</code> đáng đầu tư 1 giờ: nó tiết kiệm 20 dòng trong <strong>mọi</strong> prompt sau đó.</p><h3 id="6-prompt-mẫu-cho-6-hệ-thống-của-game-này" class="h h--3">6 prompt mẫu cho 6 hệ thống của game này<a class="anchor" href="#6-prompt-mẫu-cho-6-hệ-thống-của-game-này" aria-label="Liên kết tới mục này">#</a></h3><h4 id="a-dialogue-system" class="h h--4">(a) Dialogue system<a class="anchor" href="#a-dialogue-system" aria-label="Liên kết tới mục này">#</a></h4><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc AGENTS.md + scripts/autoload/game_state.gd + data/dialogs/npc_bay.json.
+
+Task: viết Dialogue autoload (scripts/autoload/dialogue.gd) chạy hội thoại từ JSON.
+
+Format JSON (đã chốt, đừng đổi):
+mỗi key là node id, value có: conditions[], speaker, portrait, lines[],
+choices[], set_flags[], clear_flags[], give_item, consume_item, next.
+"conditions" là mảng tên flag; tiền tố "!" nghĩa là phải KHÔNG có flag đó.
+
+Hành vi:
+- start(json_path, entry_id="") là async (await được từ ngoài).
+- Nếu entry_id rỗng: chọn node thỏa điều kiện có NHIỀU condition nhất
+  (để node đặc thù thắng node mặc định).
+- Hiện từng dòng trong lines[], chờ người chơi bấm mới sang dòng tiếp.
+- Sau lines[], nếu có choices[]: lọc bỏ choice thiếu require_item hoặc
+  thiếu conditions, rồi hiện menu, chờ chọn.
+- Áp dụng set_flags/give_item/consume_item cho cả node và choice đã chọn.
+- Khóa input bằng GameState.push_input_lock/pop_input_lock.
+- Phát signal dialogue_started / dialogue_finished.
+
+RÀNG BUỘC
+- UI tự đăng ký qua Dialogue.register_ui(node); Dialogue KHÔNG tự get_node UI.
+- Xử lý lỗi: file không tồn tại, JSON sai, node id không tồn tại -&gt; push_error,
+  không crash, và PHẢI pop_input_lock trước khi return.
+
+ĐỊNH DẠNG: code + interface mà UI phải implement (danh sách hàm + signature).</code></pre></figure><p>Chú ý dòng cuối của RÀNG BUỘC: <em>"PHẢI pop_input_lock trước khi return"</em>. Đây là loại chi tiết AI hay quên và gây bug "thoại xong không điều khiển được". <strong>Nói trước rẻ hơn debug sau.</strong></p><h4 id="b-save-system" class="h h--4">(b) Save system<a class="anchor" href="#b-save-system" aria-label="Liên kết tới mục này">#</a></h4><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc AGENTS.md + game_state.gd.
+
+Task: SaveSystem autoload, format JSON ở user://saves/save_&lt;slot&gt;.json.
+
+Quyết định đã chốt (đừng đề xuất Resource): dùng JSON vì load .tres từ file
+người dùng có rủi ro thực thi code.
+
+Hành vi:
+- save_game(slot) -&gt; bool. Ghi {version, saved_at, state} với state = GameState.to_dict().
+- LỌC BỎ mọi flag có tiền tố "_" trước khi ghi (đó là flag tạm).
+- load_game(slot) -&gt; bool. Parse, check version, gọi GameState.from_dict,
+  rồi SceneRouter.goto_level(level, spawn).
+- get_slot_info(slot) -&gt; Dictionary cho menu chọn slot: saved_at, level,
+  playtime_text ("MM:SS"), item_count. KHÔNG load game.
+- has_save(slot), delete_save(slot).
+- _migrate(payload, from_version) -&gt; Dictionary: hiện tại chỉ khung sẵn với
+  comment hướng dẫn tôi thêm bước migrate về sau.
+
+RÀNG BUỘC
+- Mọi lỗi I/O -&gt; push_error + return false, không crash.
+- Tạo thư mục saves ở _ready.
+- Không sửa game_state.gd.
+
+ĐỊNH DẠNG: code + ví dụ file JSON output thật (dán nội dung mẫu).</code></pre></figure><p>Yêu cầu "ví dụ file JSON output thật" rất hữu ích: bạn đọc nó trong 5 giây và biết ngay logic có đúng không, không cần đọc hết code.</p><h4 id="c-camera-rig" class="h h--4">(c) Camera rig<a class="anchor" href="#c-camera-rig" aria-label="Liên kết tới mục này">#</a></h4><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc AGENTS.md.
+
+Task: scripts/actors/camera_rig.gd — camera follow cho pixel 2.5D.
+
+Hành vi:
+- @export target: Node3D. Nếu null, tìm node đầu tiên trong group "player".
+- Follow trong _process (KHÔNG _physics_process) với lerp độc lập framerate:
+  t = 1 - exp(-follow_speed * delta). Giải thích trong comment tại sao
+  không dùng lerp(a, b, speed*delta).
+- @export target_offset: Vector3 (mặc định (0,1,0)) để ngắm ngực không ngắm chân.
+- @export snap_to_pixel: bool — làm tròn vị trí về bội số của 1/16 unit.
+- @export use_limits + limit_min/limit_max: clamp x và z.
+
+RÀNG BUỘC
+- Không tự set rotation của rig (pitch/yaw do node con giữ, tôi set trong editor).
+- Không tự tạo Camera3D bằng code.
+
+ĐỊNH DẠNG: cây scene (CameraRig &gt; Yaw &gt; Pitch &gt; Camera3D với property cụ thể)
++ code + giải thích ngắn về giới hạn của snap_to_pixel khi camera nghiêng 30°.</code></pre></figure><p>Câu cuối buộc AI nói ra <strong>giới hạn</strong> thay vì bán cho bạn giải pháp hoàn hảo không tồn tại.</p><h4 id="d-puzzle-state-machine-nhỏ" class="h h--4">(d) Puzzle (state machine nhỏ)<a class="anchor" href="#d-puzzle-state-machine-nhỏ" aria-label="Liên kết tới mục này">#</a></h4><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc AGENTS.md + scripts/props/torch.gd.
+
+Task: scripts/props/torch_puzzle.gd — câu đố thứ tự 3 đuốc.
+
+Thiết kế đã chốt:
+- Gắn vào Node3D cha có 3 node con kiểu Torch tên: TorchSea, TorchMoon, TorchStone.
+- @export correct_order: Array[String] = ["TorchSea","TorchMoon","TorchStone"]
+- Torch phát signal `lit` khi được thắp.
+- Reset NGAY ở bước sai đầu tiên (không chờ đủ 3) — quyết định thiết kế,
+  để người chơi biết chính xác bước nào sai.
+- Sai: SFX "puzzle_fail" + toast + tắt cả 3 đuốc + xóa sequence.
+- Đúng đủ 3: set flag "torch_puzzle_done", SFX "puzzle_solved", toast, mở door.
+- @export door: Node3D. Nếu door có method open(animate: bool) thì gọi,
+  không thì door.visible = false.
+- Nếu flag đã có từ save: mở door ngay lúc _ready, KHÔNG connect signal.
+
+RÀNG BUỘC
+- Không sửa torch.gd.
+- Dùng get_children() + check `is Torch`, không hardcode get_node("TorchSea").
+
+ĐỊNH DẠNG: chỉ code. Ngắn gọn — file này không nên quá 60 dòng.</code></pre></figure><p>Dòng <em>"không nên quá 60 dòng"</em> là công cụ chống over-engineering rất hiệu quả.</p><h4 id="e-refactor-dùng-khi-code-đã-chạy-nhưng-lộn-xộn" class="h h--4">(e) Refactor (dùng khi code đã chạy nhưng lộn xộn)<a class="anchor" href="#e-refactor-dùng-khi-code-đã-chạy-nhưng-lộn-xộn" aria-label="Liên kết tới mục này">#</a></h4><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc scripts/actors/player.gd.
+
+Vấn đề: Input.get_vector đang bị gọi 2 lần mỗi frame (_read_move_input và
+_update_animation). Muốn cache 1 lần.
+
+Task: refactor CHỈ chuyện đó.
+- Thêm biến _raw_input: Vector2, gán 1 lần ở đầu _physics_process.
+- Hai hàm kia dùng biến đó.
+
+RÀNG BUỘC TUYỆT ĐỐI
+- KHÔNG đổi hành vi game. Kết quả chạy phải giống hệt trước.
+- KHÔNG đổi tên hàm/biến khác.
+- KHÔNG "cải tiến" thêm bất cứ thứ gì, kể cả nếu bạn thấy code khác dở.
+- KHÔNG xóa comment.
+
+ĐỊNH DẠNG: chỉ diff (dòng nào đổi thành gì). Đừng in lại cả file.</code></pre></figure><p><strong>"Chỉ diff"</strong> là kỹ thuật quan trọng: nó khiến scope creep hiện ra ngay lập tức. Nếu diff có 40 dòng cho một task 5 dòng → AI đã tự ý làm thêm.</p><h4 id="f-sinh-dữ-liệu-nội-dung" class="h h--4">(f) Sinh dữ liệu / nội dung<a class="anchor" href="#f-sinh-dữ-liệu-nội-dung" aria-label="Liên kết tới mục này">#</a></h4><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc docs/DESIGN.md phần "Bà Tám" + data/dialogs/npc_bay.json (làm mẫu format).
+
+Task: viết data/dialogs/npc_tam.json.
+
+Nội dung: bà Tám hát bài ca là manh mối cho câu đố đuốc.
+Lời bài: "Biển gọi trước, trăng đáp sau, đá nằm im cuối cùng."
+
+Cần ĐỦ 3 trạng thái:
+1. Lần đầu (conditions: ["!heard_song"]) — hát bài, set flag heard_song
+2. Nhắc lại (conditions: ["heard_song", "!torch_puzzle_done"]) — hát lại ngắn hơn
+3. Sau khi xong (conditions: ["torch_puzzle_done"]) — vui, nói về thuyền về
+
+RÀNG BUỘC VĂN PHONG
+- Mỗi dòng trong "lines" tối đa 90 ký tự (hộp thoại 320px chỉ chứa được thế).
+- Giọng bà Tám: vòng vo, hay hát, dùng "hồi đó", "bà không hiểu".
+- KHÔNG cho bà Tám nói thẳng đáp án dạng "thắp Sea rồi Moon rồi Stone".
+- KHÔNG có câu chào hỏi kiểu "Xin chào cháu!".
+- Tiếng Việt tự nhiên, không dịch máy.
+
+ĐỊNH DẠNG: chỉ nội dung JSON, valid JSON, không markdown fence bên trong.</code></pre></figure><p>Sinh nội dung là chỗ AI <strong>rất mạnh</strong> — và ràng buộc số ký tự làm output dùng được ngay không phải sửa.</p><hr class="rule"><h2 id="96-vòng-lặp-thực-tế-generate-read-test-fix" class="h h--2">9.6 Vòng lặp thực tế: Generate → Read → Test → Fix<a class="anchor" href="#96-vòng-lặp-thực-tế-generate-read-test-fix" aria-label="Liên kết tới mục này">#</a></h2><p>Đây là quy trình bạn sẽ chạy hàng trăm lần. Học cho thuộc.</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">┌─────────────────────────────────────────────────────────────┐
+│  1. PLAN      Bạn quyết định làm gì. Chia thành task ≤ 1 file│
+│               (Nếu chưa rõ: chế độ Pair, hỏi trước)         │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│  2. GENERATE  AI viết code + cây scene + cách test          │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│  3. READ      ⚠️ BẠN ĐỌC CODE. Không bỏ bước này.            │
+│               Checklist ở 9.6.2                              │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│  4. WIRE      Bạn dựng scene trong editor theo mô tả        │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│  5. TEST      Chạy F5/F6. Làm đúng "Cách test". Ghi kết quả  │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+              ┌──────────┴──────────┐
+        Chạy đúng?               Lỗi/sai?
+              │                       │
+              ▼                       ▼
+┌──────────────────────┐  ┌──────────────────────────────────┐
+│ 6. COMMIT            │  │ 6'. FIX — dán log + hành vi thực │
+│    git commit ngay    │  │     tế + hành vi mong đợi        │
+│    Cập nhật TASKS.md  │  │     → về bước 2                  │
+└──────────────────────┘  └──────────────────────────────────┘</code></pre></figure><h3 id="961-vì-sao-read-là-bước-không-thể-bỏ" class="h h--3">9.6.1 Vì sao "READ" là bước không thể bỏ<a class="anchor" href="#961-vì-sao-read-là-bước-không-thể-bỏ" aria-label="Liên kết tới mục này">#</a></h3><p>Ba loại bug chỉ phát hiện được bằng cách đọc:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Loại</th><th>Ví dụ thật</th><th>Test có bắt được không?</th></tr></thead><tbody><tr><td><strong>Đúng hành vi, sai kiến trúc</strong></td><td>AI tạo <code>var inventory = {}</code> trong <code>inventory_ui.gd</code> thay vì đọc <code>GameState.inventory</code> → UI hiển thị đúng, nhưng save không lưu</td><td>❌ Chỉ phát hiện sau khi save/load — có thể 2 tuần sau</td></tr><tr><td><strong>Hoạt động trong trường hợp bạn test, sai ở trường hợp khác</strong></td><td><code>remove_item</code> không check số lượng → trừ thành số âm khi dùng item không có</td><td>❌ Test hạnh phúc-path không bắt được</td></tr><tr><td><strong>Đúng nhưng sẽ vỡ khi mở rộng</strong></td><td>Hardcode <code>get_node("../../Player")</code> → vỡ khi đổi cấu trúc level</td><td>❌</td></tr></tbody></table></div><p>Đọc code AI mất <strong>2–5 phút</strong>. Debug bug kiến trúc mất <strong>2–5 giờ</strong>. Tỉ lệ này không đổi.</p><h3 id="962-checklist-đọc-code-ai-dùng-mỗi-lần" class="h h--3">9.6.2 Checklist đọc code AI (dùng mỗi lần)<a class="anchor" href="#962-checklist-đọc-code-ai-dùng-mỗi-lần" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Vòng 1 — quét nhanh (30 giây):</strong></p><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span>Số dòng có hợp lý với task? (task nhỏ mà 300 dòng → đọc kỹ, có scope creep)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Có file nào bị sửa mà không nằm trong task? (<code>git diff --stat</code>)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Có import/preload gì lạ? (addon bạn không cài, class không tồn tại)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Có <code>TODO</code> / <code># implement this</code> bỏ dở?</li></ul><p><strong>Vòng 2 — kiến trúc (2 phút):</strong></p><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span>Có tạo <strong>state song song</strong> với <code>GameState</code>? (biến giữ dữ liệu tiến trình ở chỗ khác)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Có gọi <code>get_node("../..")</code> hay đường dẫn tuyệt đối cứng?</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Có bỏ qua class base có sẵn? (không kế thừa <code>Interactable</code>/<code>LevelBase</code>)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Có thêm abstraction cho thứ dùng 1 lần?</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Signal có được disconnect ở chỗ cần? (node bị free mà signal còn nối → lỗi)</li><li class="task"><span class="checkbox" aria-hidden="true"></span><code>push_input_lock</code> có <code>pop</code> ở <strong>mọi</strong> đường return?</li></ul><p><strong>Vòng 3 — API (2 phút):</strong></p><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span>Tên node/class có thật ở Godot 4? (<code>AnimatedSprite3D</code> ✓, <code>AnimatedSprite</code> ✗ — đó là Godot 3)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Tên hàm: <code>move_and_slide()</code> <strong>không tham số</strong> ở Godot 4 (Godot 3 có tham số velocity)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Signal connect: <code>signal.connect(callable)</code> (Godot 4), <strong>không</strong> <code>connect("signal", self, "method")</code> (Godot 3)</li><li class="task"><span class="checkbox" aria-hidden="true"></span><code>Tween</code>: <code>create_tween()</code> (Godot 4), <strong>không</strong> <code>Tween</code> node hay <code>interpolate_property</code> (Godot 3)</li><li class="task"><span class="checkbox" aria-hidden="true"></span><code>instance()</code> → phải là <code>instantiate()</code> ở Godot 4</li><li class="task"><span class="checkbox" aria-hidden="true"></span><code>OS.get_ticks_msec()</code> → <code>Time.get_ticks_msec()</code> ở Godot 4</li><li class="task"><span class="checkbox" aria-hidden="true"></span><code>yield</code> → <code>await</code> ở Godot 4</li><li class="task"><span class="checkbox" aria-hidden="true"></span><code>export var</code> → <code>@export var</code> ở Godot 4</li></ul><p><strong>Vòng 4 — logic (3 phút):</strong></p><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span>Chia cho 0, index âm, mảng rỗng có được xử lý?</li><li class="task"><span class="checkbox" aria-hidden="true"></span><code>null</code> check ở chỗ node có thể chưa tồn tại?</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Vòng lặp <code>while</code> có điều kiện thoát đảm bảo?</li><li class="task"><span class="checkbox" aria-hidden="true"></span><code>await</code> trong <code>_ready</code> (làm <code>_ready</code> return sớm — thường là bug)?</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Số magic không giải thích?</li></ul><h3 id="963-cách-báo-lỗi-cho-ai-quan-trọng-hơn-bạn-nghĩ" class="h h--3">9.6.3 Cách báo lỗi cho AI (quan trọng hơn bạn nghĩ)<a class="anchor" href="#963-cách-báo-lỗi-cho-ai-quan-trọng-hơn-bạn-nghĩ" aria-label="Liên kết tới mục này">#</a></h3><p><strong>❌ Báo lỗi tệ:</strong></p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">không chạy</code></pre></figure><p>AI sẽ đoán và bạn mất 3 vòng.</p><p><strong>✅ Báo lỗi tốt — công thức 5 phần:</strong></p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">1. TÔI LÀM GÌ:      Bấm F5, đi tới NPC ông Bảy, nhấn E
+2. MONG ĐỢI:        Hộp thoại hiện ra với dòng đầu
+3. THỰC TẾ:         Hộp thoại hiện nhưng chữ hiện hết ngay lập tức,
+                    không có typewriter. Nhấn E lần nữa thì đóng luôn
+                    hộp thoại thay vì sang dòng 2.
+4. LOG:             (dán nguyên văn từ panel Output/Debugger)
+   E 0:00:03:0451   dialogue_box.gd:52 @ show_line(): Invalid access to
+   property or key 'visible_characters' on a base object of type 'Nil'
+     &lt;C++ Source&gt;   core/variant/variant_setget.cpp:XXX
+     &lt;Stack Trace&gt;  dialogue_box.gd:52 @ show_line()
+                    dialogue.gd:88 @ _run_node()
+5. TÔI ĐÃ THỬ:      In ra text_label ở _ready thì thấy &lt;null&gt;.
+                    Đường dẫn node trong scene của tôi là
+                    DialogueBox/Panel/Text (không phải DialogueBox/Text).</code></pre></figure><p>Phần 5 thường là cái giải quyết vấn đề. Ở ví dụ trên, bug là <code>@onready var text_label = $Text</code> nhưng scene thật có <code>Text</code> nằm trong <code>Panel</code>. AI không thể biết điều này — <strong>bạn</strong> phải nói.</p><blockquote class="note"><p><strong>Luôn dán log nguyên văn.</strong> Đừng viết lại bằng lời. Stack trace cho biết chính xác dòng nào, và AI đọc nó tốt.</p></blockquote><h3 id="964-khi-ai-sửa-3-lần-vẫn-không-được" class="h h--3">9.6.4 Khi AI sửa 3 lần vẫn không được<a class="anchor" href="#964-khi-ai-sửa-3-lần-vẫn-không-được" aria-label="Liên kết tới mục này">#</a></h3><p>Dấu hiệu: mỗi vòng nó sửa một chỗ khác, bug chuyển chỗ chứ không mất.</p><p>Nguyên nhân thường là <strong>AI đang thiếu một thông tin cốt lõi</strong> — thường là cấu trúc scene thật của bạn.</p><p>Cách phá vòng lặp:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Dừng sửa. Ta đang đoán vòng vòng.
+
+Thay vì sửa tiếp, hãy làm 3 việc:
+1. Liệt kê MỌI giả định bạn đang dựa vào về scene/code của tôi.
+2. Với mỗi giả định, cho tôi 1 dòng code print() để tôi kiểm chứng.
+3. Đừng viết fix nào cho tới khi tôi trả về kết quả print.</code></pre></figure><p>Prompt này gần như luôn tìm ra vấn đề trong 1 vòng. Nó buộc AI phơi ra giả định sai thay vì tiếp tục sửa mù.</p><p>Một biến thể hữu ích khác:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Giải thích cho tôi luồng chạy chính xác, từ lúc tôi nhấn E tới lúc chữ hiện
+ra: hàm nào gọi hàm nào, ở frame nào. Đừng viết code. Tôi muốn tìm chỗ giả
+định của bạn khác thực tế.</code></pre></figure><hr class="rule"><h2 id="97-việc-nào-giao-ai-việc-nào-tự-làm" class="h h--2">9.7 Việc nào giao AI, việc nào tự làm<a class="anchor" href="#97-việc-nào-giao-ai-việc-nào-tự-làm" aria-label="Liên kết tới mục này">#</a></h2><p>Bảng này dựa trên trải nghiệm thực tế làm game Godot với AI. Đọc kỹ cột "Ghi chú" — đó là chỗ có giá trị.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Việc</th><th>Giao AI?</th><th>Ghi chú</th></tr></thead><tbody><tr><td><strong>Code — nên giao</strong></td><td></td><td></td></tr><tr><td>Inventory (logic + UI)</td><td>✅ Rất tốt</td><td>Bài toán kinh điển, AI làm gần như hoàn hảo. Chỉ cần kiểm nó dùng <code>GameState</code> không tự giữ state</td></tr><tr><td>Save/load JSON</td><td>✅ Rất tốt</td><td>Nhớ ràng buộc "lọc flag tạm" và "pop lock ở mọi return"</td></tr><tr><td>Dialogue system + parser JSON</td><td>✅ Rất tốt</td><td>Cho nó format JSON trước, đừng để nó tự thiết kế format</td></tr><tr><td>UI menu, settings, slider</td><td>✅ Rất tốt</td><td>Cây scene UI thì bạn phải dựng tay</td></tr><tr><td>Parse/validate dữ liệu</td><td>✅ Rất tốt</td><td></td></tr><tr><td>Boilerplate class (Interactable, LevelBase)</td><td>✅ Tốt</td><td></td></tr><tr><td>State machine nhỏ (puzzle)</td><td>✅ Tốt</td><td>Giới hạn số dòng để nó không làm to</td></tr><tr><td>Refactor máy móc (đổi tên, tách hàm)</td><td>✅ Tốt</td><td>Bắt buộc dùng "chỉ diff"</td></tr><tr><td>Viết test (GUT/GdUnit)</td><td>✅ Tốt</td><td>Xem 9.13</td></tr><tr><td>Debug logic (có log)</td><td>✅ Tốt</td><td>Chất lượng phụ thuộc hoàn toàn vào log bạn dán</td></tr><tr><td><strong>Code — cẩn thận</strong></td><td></td><td></td></tr><tr><td>Camera feel (follow, shake, zoom)</td><td>⚠️ Được, phải tự tune</td><td>AI viết đúng công thức; <strong>con số</strong> phải bạn tune bằng cách chơi</td></tr><tr><td>Player controller</td><td>⚠️ Được, phải tự tune</td><td>Cùng lý do. <code>acceleration</code>, <code>friction</code> là quyết định cảm giác</td></tr><tr><td>Shader</td><td>⚠️ Trung bình</td><td>AI viết shader chạy được nhưng hay sai chi tiết Godot 4 shading language. Test từng bước</td></tr><tr><td>Physics tuning</td><td>⚠️ Trung bình</td><td>Nó không cảm nhận được "thùng đẩy nặng quá"</td></tr><tr><td>Tối ưu performance</td><td>⚠️ Trung bình</td><td>Nó tối ưu chỗ không cần. <strong>Đo trước</strong> rồi mới giao</td></tr><tr><td><strong>Code — đừng giao</strong></td><td></td><td></td></tr><tr><td>Quyết định kiến trúc lớn</td><td>❌</td><td>Dùng chế độ Pair để <strong>thảo luận</strong>, nhưng bạn quyết</td></tr><tr><td>"Làm game hộ tôi"</td><td>❌</td><td>Không có spec = AI bịa spec = bạn nhận về game của nó</td></tr><tr><td>Sửa <code>.tscn</code></td><td>❌</td><td>Xem 9.3.3</td></tr><tr><td><strong>Asset</strong></td><td></td><td></td></tr><tr><td>Concept art / mood board</td><td>✅ Rất tốt</td><td>Xem chương 03</td></tr><tr><td>Prop / tile pixel art</td><td>⚠️ Được, cần hậu kỳ</td><td>Xem 3.7</td></tr><tr><td>Sprite nhân vật + animation</td><td>❌ Kém</td><td>Tự vẽ. Xem 3.4</td></tr><tr><td>Nhạc chiptune (audio)</td><td>❌ Kém</td><td>Xem 8.3</td></tr><tr><td>Lý thuyết nhạc (chord, melody dạng note)</td><td>✅ Rất tốt</td><td>Xem 8.3 — đây là cách dùng AI cho nhạc</td></tr><tr><td>SFX</td><td>❌ Không cần AI</td><td>jsfxr nhanh hơn, xem 8.2</td></tr><tr><td><strong>Nội dung</strong></td><td></td><td></td></tr><tr><td>Dialog NPC (theo bảng giọng của bạn)</td><td>✅ Rất tốt</td><td>Ràng buộc số ký tự + giọng nhân vật</td></tr><tr><td>Tên item, mô tả item</td><td>✅ Rất tốt</td><td></td></tr><tr><td>Sinh 20 câu thoại vặt cho NPC phụ</td><td>✅ Rất tốt</td><td>Chỗ AI tiết kiệm thời gian rõ nhất</td></tr><tr><td>Cốt truyện chính</td><td>⚠️ Được, làm với bạn</td><td>AI cho ra cốt truyện "trung bình an toàn". Ý tưởng gốc là của bạn</td></tr><tr><td>Thiết kế câu đố</td><td>⚠️ Cẩn thận</td><td>AI đề xuất puzzle kinh điển; nó <strong>không</strong> biết puzzle của bạn có bị moon-logic không</td></tr><tr><td>Dịch sang tiếng Anh (localize)</td><td>✅ Tốt</td><td></td></tr><tr><td><strong>Tài liệu &amp; quy trình</strong></td><td></td><td></td></tr><tr><td>Viết <code>docs/</code>, README, CREDITS</td><td>✅ Rất tốt</td><td></td></tr><tr><td>Commit message</td><td>✅ Tốt</td><td></td></tr><tr><td>Sinh checklist test</td><td>✅ Tốt</td><td></td></tr><tr><td><strong>Playtest</strong></td><td></td><td></td></tr><tr><td>Chơi game, đánh giá có vui không</td><td>❌ Không thể</td><td>Việc này chỉ người làm được</td></tr></tbody></table></div><h3 id="quy-tắc-rút-ra" class="h h--3">Quy tắc rút ra<a class="anchor" href="#quy-tắc-rút-ra" aria-label="Liên kết tới mục này">#</a></h3><blockquote class="note"><p><strong>Giao AI những việc có "đúng/sai" rõ ràng. Tự làm những việc có "hay/dở".</strong></p></blockquote><hr class="rule"><h2 id="98-bẫy-thường-gặp---catalog-đầy-đủ" class="h h--2">9.8 Bẫy thường gặp — catalog đầy đủ<a class="anchor" href="#98-bẫy-thường-gặp---catalog-đầy-đủ" aria-label="Liên kết tới mục này">#</a></h2><p>Mỗi bẫy: dấu hiệu → nguyên nhân → cách phòng.</p><h3 id="bẫy-1---ai-bịa-api-trộn-godot-3-vào-godot-4" class="h h--3">Bẫy 1 — AI bịa API / trộn Godot 3 vào Godot 4<a class="anchor" href="#bẫy-1---ai-bịa-api-trộn-godot-3-vào-godot-4" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Dấu hiệu</strong>: code không compile, hoặc Godot báo <code>Invalid call. Nonexistent function</code>.</p><p><strong>Bảng đối chiếu Godot 3 → Godot 4</strong> (những chỗ AI sai nhiều nhất):</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Godot 3 (AI hay viết)</th><th>Godot 4 (đúng)</th></tr></thead><tbody><tr><td><code>export var speed = 5</code></td><td><code>@export var speed: float = 5.0</code></td></tr><tr><td><code>onready var x = $X</code></td><td><code>@onready var x: Node = $X</code></td></tr><tr><td><code>yield(get_tree(), "idle_frame")</code></td><td><code>await get_tree().process_frame</code></td></tr><tr><td><code>connect("pressed", self, "_on_pressed")</code></td><td><code>pressed.connect(_on_pressed)</code></td></tr><tr><td><code>emit_signal("my_signal", a)</code></td><td><code>my_signal.emit(a)</code> (cách cũ vẫn chạy nhưng đừng dùng)</td></tr><tr><td><code>PackedScene.instance()</code></td><td><code>PackedScene.instantiate()</code></td></tr><tr><td><code>move_and_slide(velocity)</code></td><td><code>velocity = ...</code> rồi <code>move_and_slide()</code> (không tham số)</td></tr><tr><td><code>KinematicBody2D/3D</code></td><td><code>CharacterBody2D/3D</code></td></tr><tr><td><code>Spatial</code></td><td><code>Node3D</code></td></tr><tr><td><code>AnimatedSprite</code></td><td><code>AnimatedSprite2D</code> / <code>AnimatedSprite3D</code></td></tr><tr><td><code>Sprite</code></td><td><code>Sprite2D</code></td></tr><tr><td><code>OS.get_ticks_msec()</code></td><td><code>Time.get_ticks_msec()</code></td></tr><tr><td><code>OS.window_size</code></td><td><code>DisplayServer.window_get_size()</code> / <code>get_window().size</code></td></tr><tr><td><code>Tween</code> node + <code>interpolate_property</code></td><td><code>create_tween().tween_property(...)</code></td></tr><tr><td><code>linear2db</code> / <code>db2linear</code></td><td><code>linear_to_db</code> / <code>db_to_linear</code></td></tr><tr><td><code>File.new()</code> + <code>file.open()</code></td><td><code>FileAccess.open(path, FileAccess.READ)</code></td></tr><tr><td><code>Directory.new()</code></td><td><code>DirAccess.open()</code></td></tr><tr><td><code>JSON.parse(text).result</code></td><td><code>JSON.parse_string(text)</code></td></tr><tr><td><code>deg2rad</code> / <code>rad2deg</code></td><td><code>deg_to_rad</code> / <code>rad_to_deg</code></td></tr><tr><td><code>is_action_just_pressed</code></td><td>(giống nhau — cái này an toàn)</td></tr><tr><td><code>VisualServer</code></td><td><code>RenderingServer</code></td></tr><tr><td><code>.tscn</code> <code>instance</code> property</td><td>(khác hoàn toàn, đừng sửa tay)</td></tr></tbody></table></div><p><strong>Cách phòng:</strong></p><ol class="list"><li>Ghi rõ bản Godot trong <code>AGENTS.md</code> (§1)</li><li>Thêm vào prompt: <em>"Nếu không chắc API tồn tại ở Godot 4.4, nói ra thay vì đoán."</em></li><li>Cho AI chạy <code>godot --headless --check-only</code> để tự kiểm syntax</li><li>Bạn tra <code>F1</code> trong editor — <strong>nguồn sự thật duy nhất là bản Godot bạn cài</strong></li></ol><blockquote class="note"><p>Lưu ý: <code>--check-only</code> chỉ bắt <strong>lỗi syntax</strong>, không bắt "hàm không tồn tại" (đó là lỗi runtime trong GDScript). Nên vẫn phải chạy game.</p></blockquote><h3 id="bẫy-2---code-chạy-nhưng-sai-thiết-kế" class="h h--3">Bẫy 2 — Code chạy nhưng sai thiết kế<a class="anchor" href="#bẫy-2---code-chạy-nhưng-sai-thiết-kế" aria-label="Liên kết tới mục này">#</a></h3><p>Đây là bẫy <strong>đắt nhất</strong>, vì test không bắt được.</p><p><strong>Ví dụ thật 1</strong>: bạn nhờ làm inventory UI. AI viết:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># ❌ AI viết — chạy đúng, sai kiến trúc
+var items: Dictionary = {}          # state riêng!
+
+func add_to_display(id: String) -&gt; void:
+	items[id] = items.get(id, 0) + 1
+	_refresh()</code></pre></figure><p>UI hiển thị đúng khi bạn test. Nhưng <code>GameState.inventory</code> không được cập nhật → <strong>save không lưu item</strong>. Bạn phát hiện 2 tuần sau khi test save/load.</p><p><strong>Cách phòng</strong>: <code>AGENTS.md</code> §3 luật 1 (<em>"chỉ GameState giữ dữ liệu"</em>) + vòng 2 của checklist đọc code.</p><p><strong>Ví dụ thật 2</strong>: cổng khóa mở đúng, nhưng AI không đọc flag trong <code>_ready</code> → quay lại màn thì cổng đóng lại. Test "mở cổng" pass, test "quay lại màn" không ai nghĩ tới.</p><p><strong>Cách phòng</strong>: mỗi khi làm thứ có state, tự hỏi 3 câu:</p><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Reload level</strong> thì nó có giữ đúng trạng thái? (đọc flag trong <code>_ready</code>)</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Save → load</strong> thì nó có giữ đúng? (state có nằm trong <code>GameState.to_dict()</code>?)</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Làm lại lần 2</strong> thì có bị lặp? (item nhặt 2 lần, flag set 2 lần, signal nối 2 lần)</li></ul><p>Ba câu này bắt được ~80% bug "chạy nhưng sai".</p><h3 id="bẫy-3---scope-creep-im-lặng" class="h h--3">Bẫy 3 — Scope creep im lặng<a class="anchor" href="#bẫy-3---scope-creep-im-lặng" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Dấu hiệu</strong>: bạn nhờ thêm 1 hàm, <code>git diff --stat</code> cho 6 file đổi.</p><p><strong>Ví dụ</strong>: bạn nhờ <em>"thêm sprint cho player"</em>. AI trả về: sprint + hệ thống stamina + UI thanh stamina + hồi stamina khi đứng yên + SFX hết hơi. Bạn không yêu cầu 4 thứ sau.</p><p>Vấn đề không phải là nó dở — mà là bạn giờ có <strong>4 hệ thống chưa test, chưa thiết kế</strong>, và game của bạn có stamina mà design doc không nói gì về stamina.</p><p><strong>Cách phòng:</strong></p><ol class="list"><li><code>AGENTS.md</code> §6: <em>"Không viết hệ thống tôi chưa yêu cầu."</em></li><li>Luôn chạy <code>git diff --stat</code> <strong>trước</strong> khi đọc code</li><li>Yêu cầu "chỉ diff" cho task nhỏ</li><li>Câu chốt trong prompt: <em>"Nếu bạn thấy nên làm thêm gì, LIỆT KÊ ở cuối, đừng làm."</em></li></ol><h3 id="bẫy-4---over-engineering" class="h h--3">Bẫy 4 — Over-engineering<a class="anchor" href="#bẫy-4---over-engineering" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Dấu hiệu</strong>: một cái cửa có 4 file: <code>door.gd</code>, <code>door_state.gd</code>, <code>door_state_machine.gd</code>, <code>i_openable.gd</code>.</p><p>AI được train trên codebase enterprise. Nó mang tư duy đó vào game 5 phút của bạn.</p><p><strong>Cách phòng:</strong></p><ul class="list"><li>Nói rõ quy mô: <em>"Game này ~15 file script tổng cộng. Đừng thêm abstraction."</em></li><li>Giới hạn dòng: <em>"File này không nên quá 60 dòng."</em></li><li>Câu thần chú trong <code>AGENTS.md</code>: <em>"Thà lặp code còn hơn thêm 3 lớp trừu tượng."</em></li><li>Khi nhận về thiết kế phức tạp: <em>"Làm lại đơn giản nhất có thể. Chấp nhận lặp code."</em></li></ul><p><strong>Ngưỡng thực tế</strong>: nếu một abstraction chỉ có <strong>1 người dùng</strong>, nó chưa cần tồn tại. Chờ tới người dùng thứ 3 hãy trừu tượng hóa.</p><h3 id="bẫy-5---ai-phá-kiến-trúc-khi-thêm-tính-năng" class="h h--3">Bẫy 5 — AI phá kiến trúc khi thêm tính năng<a class="anchor" href="#bẫy-5---ai-phá-kiến-trúc-khi-thêm-tính-năng" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Dấu hiệu</strong>: nó thêm tính năng đúng, nhưng bằng cách tạo autoload mới / bypass hệ thống có sẵn.</p><p><strong>Ví dụ</strong>: bạn nhờ <em>"thêm hệ thống đèn dầu hết dầu dần"</em>. AI tạo autoload <code>LanternManager</code> giữ <code>oil_amount</code> → giờ có <strong>2</strong> chỗ giữ state, và save không biết về <code>oil_amount</code>.</p><p><strong>Cách phòng — kỹ thuật "constraint prompting"</strong>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">RÀNG BUỘC KIẾN TRÚC
+- KHÔNG thêm autoload mới.
+- Mọi state phải nằm trong GameState (thêm field vào GameState.to_dict/from_dict
+  nếu cần, và NÓI CHO TÔI BIẾT bạn thêm field gì).
+- Nếu bạn nghĩ cần autoload mới, DỪNG và giải thích tại sao trước khi code.</code></pre></figure><p>Câu cuối là quan trọng nhất: nó cho AI một <strong>đường thoát hợp lệ</strong> (hỏi) thay vì buộc nó tự quyết.</p><h3 id="bẫy-6---xung-đột-version-giữa-các-câu-trả-lời" class="h h--3">Bẫy 6 — Xung đột version giữa các câu trả lời<a class="anchor" href="#bẫy-6---xung-đột-version-giữa-các-câu-trả-lời" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Dấu hiệu</strong>: session 1 AI dùng <code>Tween</code>, session 2 dùng <code>AnimationPlayer</code>, session 3 dùng <code>lerp</code> trong <code>_process</code> — cho cùng loại hiệu ứng.</p><p>Không sai, nhưng codebase của bạn thành ba trường phái.</p><p><strong>Cách phòng</strong>: ghi quyết định vào <code>AGENTS.md</code>:</p><figure class="code" data-lang="markdown"><figcaption><span class="code__lang">Markdown</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-markdown">## Quy ước đã chốt về animation
+- Chuyển động UI (fade, slide, scale): dùng `create_tween()`
+- Animation frame sprite: dùng `AnimatedSprite3D` + `SpriteFrames`
+- Chuỗi hành động phức tạp (cutscene, có SFX + di chuyển + đổi frame): `AnimationPlayer`
+- Follow camera: `lerp` trong `_process` với `1 - exp(-k*dt)`</code></pre></figure><h3 id="bẫy-7---ai-không-biết-cấu-trúc-scene-thật-của-bạn" class="h h--3">Bẫy 7 — AI không biết cấu trúc scene thật của bạn<a class="anchor" href="#bẫy-7---ai-không-biết-cấu-trúc-scene-thật-của-bạn" aria-label="Liên kết tới mục này">#</a></h3><p>Đây là nguyên nhân <strong>số 1</strong> của bug "code đúng nhưng null reference".</p><p>AI viết <code>@onready var label: Label = $Text</code> vì đó là cây scene nó <strong>đề xuất</strong>. Bạn dựng scene hơi khác (<code>$Panel/Text</code>). Crash.</p><p><strong>Cách phòng — chủ động cung cấp cây scene thật:</strong></p><p>Trong Godot: chọn node root → chuột phải → <strong>Copy Node Path</strong> cho từng node cần. Hoặc nhanh hơn, dán cây scene bằng cách xuất từ script:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/util/dump_tree.gd — chạy tạm để lấy cây scene dán cho AI
+extends Node
+
+func _ready() -&gt; void:
+	_dump(self, 0)
+
+func _dump(node: Node, depth: int) -&gt; void:
+	print("%s%s (%s)" % ["  ".repeat(depth), node.name, node.get_class()])
+	for child in node.get_children():
+		_dump(child, depth + 1)</code></pre></figure><p>Gắn tạm vào root level, chạy F6, copy output từ panel Output → dán vào chat. <strong>30 giây, tiết kiệm 3 vòng debug.</strong></p><p>Hoặc thêm vào <code>AGENTS.md</code> một mục "cây scene hiện tại" và cập nhật khi đổi.</p><h3 id="bẫy-8---signal-nối-nhiều-lần" class="h h--3">Bẫy 8 — Signal nối nhiều lần<a class="anchor" href="#bẫy-8---signal-nối-nhiều-lần" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Dấu hiệu</strong>: hộp thoại hiện 2 lần, item cộng 2 lần, SFX phát trùng.</p><p>Nguyên nhân: <code>connect</code> được gọi mỗi lần <code>_ready</code> (level reload) mà không disconnect, hoặc AI nối signal trong <code>_process</code>.</p><p><strong>Cách phòng</strong>:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># ✅ An toàn: kiểm tra trước khi nối
+if not GameState.flag_changed.is_connected(_on_flag_changed):
+	GameState.flag_changed.connect(_on_flag_changed)
+
+# ✅ Hoặc dùng cờ ONE_SHOT khi chỉ cần 1 lần
+some_signal.connect(_handler, CONNECT_ONE_SHOT)</code></pre></figure><p>Thêm vào checklist đọc code: <em>"signal nối ở đâu, có nối lặp được không?"</em></p><h3 id="bẫy-9---await-làm-ready-trả-về-sớm" class="h h--3">Bẫy 9 — <code>await</code> làm <code>_ready</code> trả về sớm<a class="anchor" href="#bẫy-9---await-làm-ready-trả-về-sớm" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># ❌ Bug tinh vi
+func _ready() -&gt; void:
+	await get_tree().process_frame     # _ready TRẢ VỀ ngay tại đây!
+	setup_stuff()                       # chạy sau, node khác đã tưởng bạn ready xong</code></pre></figure><p>Node khác gọi hàm của bạn giữa lúc <code>setup_stuff()</code> chưa chạy → crash hoặc state sai.</p><p><strong>Cách phòng</strong>:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># ✅ Tách ra
+func _ready() -&gt; void:
+	_deferred_setup.call_deferred()
+
+func _deferred_setup() -&gt; void:
+	await get_tree().process_frame
+	setup_stuff()</code></pre></figure><p>AI hay viết bản sai. Đưa cái này vào checklist.</p><h3 id="bẫy-10---context-bị-loãng-trong-session-dài" class="h h--3">Bẫy 10 — Context bị "loãng" trong session dài<a class="anchor" href="#bẫy-10---context-bị-loãng-trong-session-dài" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Dấu hiệu</strong>: sau 2 giờ chat, AI bắt đầu quên ràng buộc, dùng lại API cũ, đề xuất thứ bạn đã bác bỏ.</p><p><strong>Cách phòng</strong>:</p><ul class="list"><li>Session mới cho mỗi hệ thống lớn (dialog xong → session mới cho inventory)</li><li>Cập nhật <code>docs/TASKS.md</code> <strong>trước khi</strong> kết thúc session</li><li>Đầu session mới: <em>"Đọc AGENTS.md và docs/TASKS.md."</em></li><li>Trong session dài, nhắc lại ràng buộc quan trọng khi thấy nó bắt đầu lệch</li></ul><h3 id="bẫy-11---tin-lời-ai-về-performance" class="h h--3">Bẫy 11 — Tin lời AI về performance<a class="anchor" href="#bẫy-11---tin-lời-ai-về-performance" aria-label="Liên kết tới mục này">#</a></h3><p><strong>Dấu hiệu</strong>: AI nói <em>"cách này nhanh hơn"</em> mà không có số.</p><p>Với game 8-bit 2.5D trên máy hiện đại, bạn có <strong>thừa</strong> performance. Đừng để AI dụ bạn tối ưu sớm.</p><p><strong>Cách phòng</strong>: chỉ tối ưu khi có số đo. Panel <code>Debugger → Monitors</code> khi chạy game cho FPS, draw call, object count, memory. <strong>Đo trước, tối ưu sau, đo lại.</strong></p><h3 id="bẫy-12---đọc-tài-liệu-godot-bằng-ai-thay-vì-đọc-docs" class="h h--3">Bẫy 12 — Đọc tài liệu Godot bằng AI thay vì đọc docs<a class="anchor" href="#bẫy-12---đọc-tài-liệu-godot-bằng-ai-thay-vì-đọc-docs" aria-label="Liên kết tới mục này">#</a></h3><p>AI <strong>rất</strong> hay nhớ sai chi tiết property. Với câu hỏi <em>"property X có giá trị nào?"</em> thì <code>F1</code> trong editor <strong>luôn</strong> đúng và mất 10 giây.</p><p>Dùng AI để hỏi <em>"tại sao"</em> và <em>"làm thế nào"</em>. Dùng F1 để hỏi <em>"tên gì"</em> và <em>"tham số gì"</em>.</p><hr class="rule"><h2 id="99-kỹ-thuật-giữ-kiến-trúc-prompt-patterns" class="h h--2">9.9 Kỹ thuật giữ kiến trúc: prompt patterns<a class="anchor" href="#99-kỹ-thuật-giữ-kiến-trúc-prompt-patterns" aria-label="Liên kết tới mục này">#</a></h2><p>Bộ công cụ để AI không phá code của bạn.</p><h3 id="pattern-1---explain-before-code" class="h h--3">Pattern 1 — "Explain before code"<a class="anchor" href="#pattern-1---explain-before-code" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Trước khi viết code, trả lời 3 câu:
+1. Bạn sẽ sửa/tạo những file nào?
+2. Bạn sẽ thêm state ở đâu? (nếu có)
+3. Có hệ thống nào đã tồn tại làm việc tương tự mà ta nên dùng lại?
+
+Chờ tôi OK rồi mới code.</code></pre></figure><p>Dùng cho: mọi task &gt; 1 file. Chi phí: 1 vòng chat. Lợi: bắt được lệch kiến trúc <strong>trước khi</strong> có code phải bỏ.</p><h3 id="pattern-2---diff-only" class="h h--3">Pattern 2 — "Diff only"<a class="anchor" href="#pattern-2---diff-only" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Trả về CHỈ những dòng thay đổi, dạng:
+
+scripts/actors/player.gd
+  dòng 23: THÊM     var _raw_input: Vector2 = Vector2.ZERO
+  dòng 45: THAY THẾ  var raw := Input.get_vector(...)
+           BẰNG      # dùng _raw_input đã cache
+
+Đừng in lại cả file.</code></pre></figure><p>Dùng cho: sửa file đã chạy được. Lợi: scope creep hiện ra ngay.</p><h3 id="pattern-3---constraint-list" class="h h--3">Pattern 3 — "Constraint list"<a class="anchor" href="#pattern-3---constraint-list" aria-label="Liên kết tới mục này">#</a></h3><p>Dán nguyên khối này vào cuối prompt khi làm việc trên code đã có:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">RÀNG BUỘC
+- Không thêm autoload mới.
+- Không sửa file nào ngoài [danh sách file].
+- Không đổi signature của hàm public đã có.
+- Không xóa/đổi comment hiện có.
+- Không thêm dependency/addon.
+- Nếu cần vi phạm bất kỳ điều trên: DỪNG, giải thích, chờ tôi quyết.</code></pre></figure><h3 id="pattern-4---budget" class="h h--3">Pattern 4 — "Budget"<a class="anchor" href="#pattern-4---budget" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Ngân sách: file này tối đa 80 dòng, tối đa 5 hàm public.
+Nếu vượt, nghĩa là thiết kế sai — nói cho tôi biết thay vì viết dài.</code></pre></figure><p>Cực hiệu quả chống over-engineering. Con số bạn đặt theo cảm giác; sai thì AI sẽ nói.</p><h3 id="pattern-5---adversarial-review" class="h h--3">Pattern 5 — "Adversarial review"<a class="anchor" href="#pattern-5---adversarial-review" aria-label="Liên kết tới mục này">#</a></h3><p>Sau khi có code (kể cả code bạn tự viết):</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Review đoạn code này như một reviewer khó tính. Tìm:
+1. Bug logic (input biên, null, mảng rỗng, chia 0)
+2. Vi phạm kiến trúc trong AGENTS.md
+3. State không được save
+4. Signal có thể nối lặp
+5. API có thể không tồn tại ở Godot 4.4
+
+Với mỗi vấn đề: nêu dòng, giải thích tại sao sai, đề xuất fix.
+Nếu không tìm thấy vấn đề nào ở một hạng mục, nói "không có".
+Đừng khen. Đừng đề xuất refactor thẩm mỹ.</code></pre></figure><p>Đây là một trong những cách dùng AI <strong>giá trị nhất</strong>. Nó rất giỏi tìm lỗi trong code có sẵn — giỏi hơn viết code mới không lỗi.</p><p>Mẹo mạnh hơn: chạy pattern này ở <strong>session mới</strong> (không có context của lúc viết code). Nó review "lạnh", ít bị thiên vị bởi lý lẽ đã dùng khi viết.</p><h3 id="pattern-6---two-options" class="h h--3">Pattern 6 — "Two options"<a class="anchor" href="#pattern-6---two-options" aria-label="Liên kết tới mục này">#</a></h3><p>Khi bạn chưa biết nên làm thế nào:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Tôi cần [mô tả vấn đề].
+
+Cho tôi ĐÚNG 2 phương án khả thi (không phải 5). Với mỗi phương án:
+- Cách hoạt động (3-4 câu)
+- Số file phải tạo/sửa
+- Trade-off thật (không phải "cả hai đều tốt")
+- Cái nào bạn chọn cho game 5 phút, 15 file script, và TẠI SAO
+
+Đừng viết code.</code></pre></figure><p>Ép AI đưa <strong>khuyến nghị</strong> thay vì liệt kê. Bạn vẫn quyết, nhưng có phân tích.</p><h3 id="pattern-7---test-first-spec" class="h h--3">Pattern 7 — "Test-first spec"<a class="anchor" href="#pattern-7---test-first-spec" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Trước khi code, viết danh sách 6-10 trường hợp test cho tính năng này,
+bao gồm cả trường hợp biên và trường hợp sai.
+
+Tôi sẽ xem list đó để kiểm bạn có hiểu đúng yêu cầu không.
+Sau khi tôi OK, viết code thỏa mọi case.</code></pre></figure><p>Cực hiệu quả: nếu AI hiểu sai yêu cầu, nó lộ ra ở test list (rẻ) thay vì ở code (đắt).</p><h3 id="pattern-8---naive-first" class="h h--3">Pattern 8 — "Naive first"<a class="anchor" href="#pattern-8---naive-first" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Viết bản NGÂY THƠ nhất có thể trước. Không tối ưu, không abstraction,
+không xử lý trường hợp chưa xảy ra. Chỉ cần chạy đúng cho luồng chính.
+
+Tôi sẽ chạy thử rồi ta cải tiến sau nếu cần.</code></pre></figure><p>Dùng khi bạn đang khám phá. Code ngây thơ dễ đọc, dễ sửa, và <strong>thường là đủ</strong>.</p><hr class="rule"><h2 id="910-ai-cho-asset-workflow-thực-tế" class="h h--2">9.10 AI cho asset: workflow thực tế<a class="anchor" href="#910-ai-cho-asset-workflow-thực-tế" aria-label="Liên kết tới mục này">#</a></h2><p>Chương 03 và 08 đã nói về chất lượng. Ở đây là <strong>workflow</strong>.</p><h3 id="9101-vòng-lặp-asset" class="h h--3">9.10.1 Vòng lặp asset<a class="anchor" href="#9101-vòng-lặp-asset" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">1. AI/bạn viết PROMPT chuẩn (chương 03 mục 3.6)
+2. Gen 4-8 biến thể
+3. LỌC: bỏ ngay cái nào lệch grid pixel (không sửa được)
+4. Hậu kỳ: downscale nearest → quantize palette → clean tay
+5. Import Godot: Nearest, Lossless, no Mipmaps
+6. Đặt vào game, xem CẠNH các asset khác
+7. Nếu "lạc đàn" → sửa hoặc bỏ</code></pre></figure><p>Bước 6 là bước người ta hay bỏ. Asset trông đẹp một mình có thể trông sai trong game.</p><h3 id="9102-dùng-claude-code-để-quản-lý-asset-pipeline" class="h h--3">9.10.2 Dùng Claude Code để quản lý asset pipeline<a class="anchor" href="#9102-dùng-claude-code-để-quản-lý-asset-pipeline" aria-label="Liên kết tới mục này">#</a></h3><p>Đây là chỗ AI coding thật sự giúp cho asset (khác với AI vẽ):</p><p><strong>Việc 1 — viết script kiểm tra asset:</strong></p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Viết script Python (chạy ngoài Godot) kiểm tra thư mục art/:
+- Liệt kê file PNG nào có &gt; 32 màu (nghi là chưa quantize)
+- Liệt kê file nào có pixel alpha nửa vời (0 &lt; a &lt; 255) — sẽ gây viền xấu
+- Liệt kê file nào kích thước không phải bội số của 16
+- Xuất bảng: tên file, kích thước, số màu, có alpha nửa vời
+
+Dùng Pillow. In dạng bảng dễ đọc.</code></pre></figure><p>Script này bắt được ~90% lỗi asset trước khi bạn import. Rất đáng 10 phút.</p><p><strong>Việc 2 — batch quantize:</strong></p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Viết script Python quantize mọi PNG trong art/props/ về palette đọc từ
+art/palette.gpl (format GIMP palette).
+- Nearest color, KHÔNG dithering
+- Giữ alpha binary (a &lt; 128 -&gt; 0, else 255)
+- Ghi ra art/props_quantized/, giữ nguyên tên file
+- In ra file nào bị đổi nhiều nhất (số pixel đổi màu) để tôi kiểm tay</code></pre></figure><p><strong>Việc 3 — sinh <code>SpriteFrames</code> bằng code:</strong></p><p>Vì AI không sửa được <code>.tres</code> an toàn, cho nó viết script <code>@tool</code>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Viết script @tool tạo SpriteFrames từ sprite sheet theo layout của tôi:
+- Sheet 6 cột × 8 hàng, mỗi frame 32x32
+- Hàng 0: idle_down (4 frame, 5 fps, loop)
+- Hàng 1: idle_up (4 frame, 5 fps, loop)
+- Hàng 2: idle_side (4 frame, 5 fps, loop)
+- Hàng 3: walk_down (6 frame, 10 fps, loop)
+- Hàng 4: walk_up (6 frame, 10 fps, loop)
+- Hàng 5: walk_side (6 frame, 10 fps, loop)
+- Hàng 6: interact (3 frame, 12 fps, KHÔNG loop)
+- Hàng 7: hurt (2 frame, 8 fps, KHÔNG loop)
+
+Script chạy trong editor, đọc art/characters/hero.png, dùng AtlasTexture cho
+từng frame, lưu ra art/characters/hero_frames.tres bằng ResourceSaver.
+
+Cho tôi cả hướng dẫn chạy nó (Tools menu hay @export button?).</code></pre></figure><p>Cách này an toàn (AI viết <code>.gd</code>, không sửa <code>.tres</code>) và tái dùng được cho mọi nhân vật.</p><h3 id="9103-prompt-cho-asset-bảng-nhanh" class="h h--3">9.10.3 Prompt cho asset: bảng nhanh<a class="anchor" href="#9103-prompt-cho-asset-bảng-nhanh" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Cần gì</th><th>Tool</th><th>Prompt mẫu ở</th></tr></thead><tbody><tr><td>Mood board</td><td>Midjourney / Claude image</td><td>3.6.1</td></tr><tr><td>Tile lặp</td><td>Retro Diffusion / SD+LoRA</td><td>3.6.2</td></tr><tr><td>Prop tĩnh</td><td>PixelLab / Retro Diffusion</td><td>3.6.3</td></tr><tr><td>Sprite nhân vật (1 frame để sửa tay)</td><td>PixelLab</td><td>3.6.4</td></tr><tr><td>Portrait hội thoại</td><td>PixelLab / SD</td><td>3.6.5</td></tr><tr><td>Icon inventory 16×16</td><td>Tự vẽ (nhanh hơn)</td><td>—</td></tr><tr><td>Chord + melody</td><td>Claude (text)</td><td>8.3</td></tr><tr><td>SFX</td><td>jsfxr (không AI)</td><td>8.2</td></tr></tbody></table></div><hr class="rule"><h2 id="911-ai-cho-nội-dung-dialog-tên-mô-tả" class="h h--2">9.11 AI cho nội dung: dialog, tên, mô tả<a class="anchor" href="#911-ai-cho-nội-dung-dialog-tên-mô-tả" aria-label="Liên kết tới mục này">#</a></h2><p>Đây là chỗ AI cho <strong>giá trị cao nhất trên mỗi phút bạn bỏ ra</strong> — cao hơn cả code.</p><h3 id="9111-sinh-dialog-hàng-loạt" class="h h--3">9.11.1 Sinh dialog hàng loạt<a class="anchor" href="#9111-sinh-dialog-hàng-loạt" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc docs/DESIGN.md.
+
+Task: sinh data/dialogs/npc_villagers.json — thoại vặt cho 5 dân làng phụ.
+
+Mỗi NPC 1 node dialog, 1-2 dòng, KHÔNG có choices, KHÔNG set flag.
+Mục đích: làm thế giới có cảm giác sống, KHÔNG mang thông tin gameplay.
+
+RÀNG BUỘC
+- Mỗi dòng ≤ 90 ký tự.
+- Mỗi NPC phải nói về MỘT trong: biển, cá, ngọn đèn tắt, thời tiết, người mất tích.
+- 1 trong 5 NPC phải hài (nhẹ, không phá tone buồn).
+- KHÔNG nói thẳng manh mối câu đố (đó là việc của bà Tám).
+- Giọng: dân chài miền biển Việt Nam, dùng "chú", "cô", "bây", "hử".
+- KHÔNG dùng câu chào. Bắt đầu bằng nội dung.
+
+ĐỊNH DẠNG: valid JSON, cùng format npc_bay.json.</code></pre></figure><p>Loại việc này AI làm trong 20 giây, chất lượng dùng được sau khi bạn sửa 2–3 câu. Tự viết mất 30 phút.</p><h3 id="9112-sinh-biến-thể-rất-hữu-ích" class="h h--3">9.11.2 Sinh biến thể (rất hữu ích)<a class="anchor" href="#9112-sinh-biến-thể-rất-hữu-ích" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đây là câu thoại của ông Bảy khi cổng còn khóa:
+"Ta giữ chìa khóa cổng hầm."
+
+Viết 6 biến thể cùng nội dung nhưng khác sắc thái:
+1. Cụt hơn
+2. Ấm hơn (thương cháu)
+3. Nghi ngờ (không tin cháu)
+4. Mệt mỏi
+5. Có chút hài
+6. Bí ẩn (như biết gì đó không nói)
+
+Mỗi biến thể ≤ 90 ký tự. Tiếng Việt tự nhiên.</code></pre></figure><p>Bạn chọn cái khớp giọng nhân vật nhất. Đây là cách dùng AI để <strong>cải thiện chất lượng viết</strong>, không chỉ tăng số lượng.</p><h3 id="9113-kiểm-duyệt-nội-dung-ai---checklist" class="h h--3">9.11.3 Kiểm duyệt nội dung AI — checklist<a class="anchor" href="#9113-kiểm-duyệt-nội-dung-ai---checklist" aria-label="Liên kết tới mục này">#</a></h3><p>Nội dung AI sinh có mấy bệnh cố hữu. Kiểm mỗi lần:</p><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Quá lịch sự / quá "an toàn"</strong> — nhân vật nào cũng tử tế, không có góc cạnh</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Giải thích quá nhiều</strong> — nhân vật nói ra điều họ không nên biết, hoặc kể lại cốt truyện</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Dài quá giới hạn ký tự</strong> — đếm lại, đừng tin</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Tiếng Việt hơi "dịch"</strong> — cấu trúc câu Anh-Việt ("Tôi cần bạn giúp tôi lấy lại nó")</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Mọi NPC nói giống nhau</strong> — dấu hiệu bạn chưa cho bảng giọng nhân vật</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Sáo ngữ fantasy</strong> — "định mệnh", "ánh sáng cuối cùng", "kẻ được chọn"</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>JSON không valid</strong> — chạy qua validator hoặc để Godot báo</li><li class="task"><span class="checkbox" aria-hidden="true"></span><strong>Flag/item id sai chính tả</strong> — sẽ chạy nhưng không có tác dụng, cực khó debug</li></ul><p>Bệnh cuối là nguy hiểm nhất. Prompt phòng ngừa:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Danh sách flag hợp lệ DUY NHẤT: met_bay, has_fish, gave_fish, has_rusty_key,
+gate_open, heard_song, crate_on_plate, torch_puzzle_done, lighthouse_lit
+
+Danh sách item id hợp lệ DUY NHẤT: fish, rusty_key, lantern, salt_fire_1,
+salt_fire_2, salt_fire_3
+
+Nếu bạn cần một flag/item không có trong danh sách, DỪNG và hỏi tôi.
+Đừng bịa tên mới.</code></pre></figure><p>Hoặc tốt hơn — viết validator:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Viết script Python validate mọi file trong data/dialogs/:
+1. JSON valid
+2. Mọi "next" trỏ tới node id tồn tại trong CÙNG file (hoặc rỗng)
+3. Mọi flag trong conditions/set_flags/clear_flags nằm trong danh sách hợp lệ
+   (đọc từ docs/FLAGS.txt, mỗi dòng 1 flag)
+4. Mọi give_item/consume_item/require_item nằm trong danh sách item id
+   (đọc từ tên file trong data/items/*.tres)
+5. Mọi dòng trong "lines" ≤ 90 ký tự
+6. Mọi "portrait" path tồn tại thật trên đĩa
+
+In lỗi dạng: file:node_id: vấn đề. Exit code 1 nếu có lỗi.</code></pre></figure><p>Script này chạy trong 1 giây và bắt được cả một lớp bug im lặng. <strong>Đáng làm ngay khi bạn có &gt; 3 file dialog.</strong></p><hr class="rule"><h2 id="912-debug-với-ai" class="h h--2">9.12 Debug với AI<a class="anchor" href="#912-debug-với-ai" aria-label="Liên kết tới mục này">#</a></h2><h3 id="9121-ba-loại-lỗi-và-cách-xử-lý-khác-nhau" class="h h--3">9.12.1 Ba loại lỗi và cách xử lý khác nhau<a class="anchor" href="#9121-ba-loại-lỗi-và-cách-xử-lý-khác-nhau" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Loại</th><th>Ví dụ</th><th>AI hữu ích?</th><th>Cách làm</th></tr></thead><tbody><tr><td><strong>Lỗi có stack trace</strong></td><td><code>Invalid access to property 'x' on a base object of type 'Nil'</code></td><td>✅ Rất</td><td>Dán nguyên văn log + code file đó</td></tr><tr><td><strong>Lỗi im lặng</strong> (chạy, không crash, hành vi sai)</td><td>Cổng không mở dù có chìa</td><td>⚠️ Vừa</td><td>Bạn phải thêm <code>print()</code> để tạo dữ liệu</td></tr><tr><td><strong>Lỗi cảm giác</strong> (game feel)</td><td>Điều khiển nặng, camera giật</td><td>❌ Ít</td><td>Bạn tune. AI chỉ giúp giải thích tham số</td></tr></tbody></table></div><h3 id="9122-debug-lỗi-im-lặng-tạo-dữ-liệu-trước-hỏi-sau" class="h h--3">9.12.2 Debug lỗi im lặng: tạo dữ liệu trước, hỏi sau<a class="anchor" href="#9122-debug-lỗi-im-lặng-tạo-dữ-liệu-trước-hỏi-sau" aria-label="Liên kết tới mục này">#</a></h3><p>Với lỗi im lặng, đừng hỏi <em>"tại sao cổng không mở?"</em> — AI sẽ đoán. Hãy <strong>tạo dữ liệu</strong>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Cổng không mở dù tôi có chìa. Không có lỗi trong Output.
+
+Trước khi sửa gì, cho tôi một danh sách print() để chèn vào, đủ để xác định
+chính xác chỗ luồng đi sai. Với mỗi print, nói rõ:
+- chèn vào file nào, hàm nào, dòng nào (trước/sau câu lệnh gì)
+- in ra cái gì
+- kết quả kỳ vọng nếu mọi thứ đúng
+
+Đừng sửa code. Tôi sẽ chạy rồi dán output cho bạn.</code></pre></figure><p>Kết quả bạn nhận về sẽ dạng:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># 1. locked_gate.gd, đầu interact(), trước mọi thứ
+print("[GATE] interact called, open_flag=%s, has_flag=%s" % [open_flag, GameState.has_flag(open_flag)])
+# Kỳ vọng: open_flag="gate_open", has_flag=false
+
+# 2. locked_gate.gd, trong interact(), trước check item
+print("[GATE] required_item=%s, has_item=%s, count=%d" % [required_item_id, GameState.has_item(required_item_id), GameState.get_item_count(required_item_id)])
+# Kỳ vọng: required_item="rusty_key", has_item=true, count=1
+
+# 3. game_state.gd, cuối add_item()
+print("[STATE] add_item %s -&gt; inventory=%s" % [item_id, inventory])
+# Kỳ vọng: thấy rusty_key xuất hiện khi bạn nhận chìa từ ông Bảy</code></pre></figure><p>Bạn chạy, dán output. Trong ví dụ thật này, output cho thấy:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">[STATE] add_item rusty_key -&gt; inventory={ "fish": 1, "rusty_key": 1 }
+[GATE] interact called, open_flag=gate_open, has_flag=false
+[GATE] required_item=rusty-key, has_item=false, count=0</code></pre></figure><p>Bug hiện ra ngay: <code>required_item_id</code> trong Inspector là <code>rusty-key</code> (gạch ngang) chứ không phải <code>rusty_key</code> (gạch dưới). AI không bao giờ đoán được điều này — nhưng với dữ liệu thì thấy trong 1 giây.</p><blockquote class="note"><p><strong>Bài học</strong>: 80% thời gian debug với AI nên dành cho việc <strong>tạo dữ liệu</strong>, không phải hỏi giả thuyết.</p></blockquote><h3 id="9123-mẫu-print-debug-hữu-ích" class="h h--3">9.12.3 Mẫu print debug hữu ích<a class="anchor" href="#9123-mẫu-print-debug-hữu-ích" aria-label="Liên kết tới mục này">#</a></h3><p>Cho AI viết sẵn một bộ debug helper (dùng suốt project):</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/util/dbg.gd — autoload tên "Dbg"
+extends Node
+
+## Bật/tắt từng nhóm log. Tắt hết khi export.
+const ENABLED := {
+	"gate": true,
+	"dialog": true,
+	"state": true,
+	"save": true,
+	"puzzle": true,
+	"audio": false,
+}
+
+func log_msg(channel: String, msg: String) -&gt; void:
+	if not ENABLED.get(channel, false):
+		return
+	print("[%s] %.2f %s" % [channel.to_upper(), Time.get_ticks_msec() / 1000.0, msg])
+
+
+## In toàn bộ state — gán vào phím F3, bạn sẽ dùng liên tục.
+func dump_state() -&gt; void:
+	print("═══ GAME STATE ═══")
+	print("Level: %s (spawn: %s)" % [GameState.current_level_path, GameState.current_spawn])
+	print("Playtime: %.1fs" % GameState.playtime)
+	print("Input locked: %s" % GameState.is_input_locked())
+	print("Flags (%d):" % GameState.flags.size())
+	var flag_keys := GameState.flags.keys()
+	flag_keys.sort()
+	for k in flag_keys:
+		print("  ✓ %s" % k)
+	print("Inventory (%d):" % GameState.inventory.size())
+	for k in GameState.inventory.keys():
+		print("  • %s x%d" % [k, GameState.inventory[k]])
+	print("══════════════════")
+
+
+func _unhandled_input(event: InputEvent) -&gt; void:
+	if OS.is_debug_build() and event is InputEventKey and event.pressed:
+		if (event as InputEventKey).keycode == KEY_F3:
+			dump_state()</code></pre></figure><p><code>OS.is_debug_build()</code> đảm bảo debug key không hoạt động trong bản release.</p><h3 id="9124-debug-cheat-nhảy-trạng-thái" class="h h--3">9.12.4 Debug cheat: nhảy trạng thái<a class="anchor" href="#9124-debug-cheat-nhảy-trạng-thái" aria-label="Liên kết tới mục này">#</a></h3><p>Khi test câu đố 3, bạn không muốn chơi lại 4 phút mỗi lần. Cho AI viết cheat menu:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Viết scripts/util/debug_menu.gd — chỉ hoạt động khi OS.is_debug_build().
+
+Bấm F4 mở/đóng một panel với các nút:
+- "Set: đã có cá" -&gt; add_item fish
+- "Set: đã có chìa" -&gt; add_item rusty_key + set gave_fish
+- "Set: mở cổng" -&gt; set gate_open
+- "Set: nghe bài hát" -&gt; set heard_song
+- "Set: có đèn dầu" -&gt; add_item lantern
+- "Set: xong đố 2" -&gt; set crate_on_plate
+- "Nhảy tới P3" -&gt; SceneRouter.goto_level("res://scenes/levels/dungeon_01.tscn", "spawn_p3")
+- "Nhảy tới đỉnh" -&gt; goto lighthouse_top
+- "Xóa hết state" -&gt; GameState.reset()
+- "Dump state" -&gt; Dbg.dump_state()
+
+RÀNG BUỘC
+- Tự tạo UI bằng code (Button trong VBoxContainer trong CanvasLayer),
+  KHÔNG cần tôi dựng scene.
+- Panel phải nằm trên mọi UI khác (layer cao).
+- Không hoạt động trong bản release.</code></pre></figure><p><strong>Đây là một trong những thứ AI làm hộ có ROI cao nhất.</strong> 15 phút của AI tiết kiệm hàng giờ test lặp lại của bạn. Làm nó <strong>sớm</strong>, đừng để tới lúc gần xong.</p><hr class="rule"><h2 id="913-test-tự-động-với-ai" class="h h--2">9.13 Test tự động với AI<a class="anchor" href="#913-test-tự-động-với-ai" aria-label="Liên kết tới mục này">#</a></h2><p>Game khó test tự động hơn web/backend, nhưng <strong>phần logic</strong> thì test được và rất đáng.</p><h3 id="9131-cái-gì-test-được-cái-gì-không" class="h h--3">9.13.1 Cái gì test được, cái gì không<a class="anchor" href="#9131-cái-gì-test-được-cái-gì-không" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Test được</th><th>Không test được (phải chơi)</th></tr></thead><tbody><tr><td><code>GameState</code> flags/inventory logic</td><td>Cảm giác điều khiển</td></tr><tr><td>Parse dialog JSON + chọn node theo condition</td><td>Camera có mượt không</td></tr><tr><td>Save → load → so sánh state</td><td>Puzzle có vui không</td></tr><tr><td><code>ItemDB</code> load đúng item</td><td>Sprite có đẹp không</td></tr><tr><td>Validate dữ liệu dialog</td><td>Pacing</td></tr><tr><td>Logic puzzle (thứ tự đúng/sai)</td><td>Âm thanh có khớp không</td></tr></tbody></table></div><h3 id="9132-framework" class="h h--3">9.13.2 Framework<a class="anchor" href="#9132-framework" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Framework</th><th>Ghi chú</th></tr></thead><tbody><tr><td><strong>GUT</strong> (Godot Unit Test)</td><td>Phổ biến nhất, AssetLib, cú pháp giống xUnit</td></tr><tr><td><strong>GdUnit4</strong></td><td>Hiện đại, có fluent assertion, tích hợp CI tốt</td></tr><tr><td><strong>Tự viết</strong></td><td>Với game nhỏ, một scene <code>tests.tscn</code> chạy loạt hàm <code>assert</code> là đủ</td></tr></tbody></table></div><p>Với game 5 phút này, <strong>tự viết là đủ</strong> — đừng thêm dependency.</p><h3 id="9133-prompt-viết-test" class="h h--3">9.13.3 Prompt viết test<a class="anchor" href="#9133-prompt-viết-test" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc scripts/autoload/game_state.gd.
+
+Task: viết scenes/tests/test_game_state.tscn (mô tả cây) + scripts/tests/test_game_state.gd.
+Không dùng framework ngoài — tự viết assert đơn giản, in PASS/FAIL, đếm tổng.
+
+Test cases cần có:
+1. set_flag rồi has_flag -&gt; true
+2. set_flag(x, false) rồi has_flag -&gt; false, và flag KHÔNG còn trong dict
+3. set_flag 2 lần cùng giá trị -&gt; signal flag_changed chỉ bắn 1 lần
+4. has_all_flags(["a", "!b"]) đúng trong cả 4 tổ hợp a/b
+5. add_item rồi get_item_count -&gt; đúng số
+6. add_item(x, 0) và add_item(x, -1) -&gt; không đổi gì
+7. remove_item nhiều hơn số có -&gt; trả false VÀ không trừ gì
+8. remove_item đúng số -&gt; trả true, item bị erase khỏi dict
+9. push_input_lock 2 lần + pop 1 lần -&gt; vẫn locked
+10. push 2 + pop 2 -&gt; unlocked, signal bắn đúng 1 lần cho mỗi lượt đổi
+11. to_dict -&gt; from_dict roundtrip: state giống hệt
+12. reset() -&gt; mọi thứ rỗng
+
+RÀNG BUỘC
+- Mỗi test phải gọi GameState.reset() ở đầu để độc lập.
+- In rõ test nào fail và giá trị mong đợi vs thực tế.
+- Cuối cùng in "X/12 PASS".</code></pre></figure><p>Test #3, #7, #9, #10 là những case AI thường <strong>không</strong> nghĩ tới nếu bạn không liệt kê — và chúng là chỗ có bug thật.</p><h3 id="9134-chạy-test-không-cần-gui" class="h h--3">9.13.4 Chạy test không cần GUI<a class="anchor" href="#9134-chạy-test-không-cần-gui" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="bash"><figcaption><span class="code__lang">Shell</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-bash"># Chạy scene test rồi tự thoát
+godot --headless --quit-after 300 scenes/tests/test_game_state.tscn</code></pre></figure><p>Thêm vào cuối script test:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript">func _finish() -&gt; void:
+	print("%d/%d PASS" % [_passed, _total])
+	if _passed &lt; _total:
+		# Exit code khác 0 để CI biết fail
+		OS.set_exit_code(1)
+	get_tree().quit()</code></pre></figure><blockquote class="note"><p><strong>Kiểm tra lại</strong>: <code>--quit-after</code> nhận số <strong>frame</strong> ở một số bản Godot. Chạy <code>godot --help</code> để xem đúng. Nếu không có, gọi <code>get_tree().quit()</code> trong script như trên là chắc chắn nhất.</p></blockquote><h3 id="9135-test-hồi-quy-cho-save" class="h h--3">9.13.5 Test hồi quy cho save<a class="anchor" href="#9135-test-hồi-quy-cho-save" aria-label="Liên kết tới mục này">#</a></h3><p>Test đáng giá nhất trong game này:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Viết test: save/load roundtrip toàn diện.
+
+1. Reset state
+2. Set 5 flag khác nhau + thêm 3 item với số lượng khác nhau
+3. Set current_level_path và current_spawn
+4. Thêm 1 flag tạm tên "_temp_signal"
+5. SaveSystem.save_game(99)
+6. GameState.reset()
+7. Đọc lại bằng cách parse file JSON trực tiếp (KHÔNG dùng load_game vì nó
+   sẽ đổi scene) rồi GameState.from_dict
+8. Assert: 5 flag đúng, 3 item đúng số lượng, level/spawn đúng
+9. Assert: flag "_temp_signal" KHÔNG có trong file save (đã bị lọc)
+10. Xóa save slot 99
+
+Test này phải chạy được headless.</code></pre></figure><p>Case 9 là loại test bảo vệ một quyết định thiết kế. Nếu ai đó (kể cả AI trong session tương lai) sửa <code>save_game</code> và bỏ bước lọc, test sẽ fail ngay.</p><hr class="rule"><h2 id="914-quản-lý-context-session" class="h h--2">9.14 Quản lý context &amp; session<a class="anchor" href="#914-quản-lý-context-session" aria-label="Liên kết tới mục này">#</a></h2><h3 id="9141-khi-nào-bắt-đầu-session-mới" class="h h--3">9.14.1 Khi nào bắt đầu session mới<a class="anchor" href="#9141-khi-nào-bắt-đầu-session-mới" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Tình huống</th><th>Session mới?</th></tr></thead><tbody><tr><td>Xong một hệ thống, sang hệ thống khác</td><td>✅ Nên</td></tr><tr><td>AI bắt đầu quên ràng buộc / dùng API cũ</td><td>✅ Bắt buộc</td></tr><tr><td>Đã sửa 4 vòng không xong</td><td>✅ Nên (kèm mô tả lại vấn đề từ đầu)</td></tr><tr><td>Muốn review code "lạnh"</td><td>✅ Bắt buộc</td></tr><tr><td>Đang giữa một task, mới sửa 2 vòng</td><td>❌ Giữ session</td></tr><tr><td>Vừa dán log lỗi</td><td>❌ Giữ session</td></tr></tbody></table></div><h3 id="9142-quy-trình-đóng-session-5-phút-tiết-kiệm-rất-nhiều" class="h h--3">9.14.2 Quy trình đóng session (5 phút, tiết kiệm rất nhiều)<a class="anchor" href="#9142-quy-trình-đóng-session-5-phút-tiết-kiệm-rất-nhiều" aria-label="Liên kết tới mục này">#</a></h3><p>Trước khi kết thúc:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Ta sắp dừng ở đây. Hãy cập nhật docs/TASKS.md:
+1. Đánh dấu xong những gì đã xong (kèm mô tả 1 dòng)
+2. Ghi rõ đang làm dở cái gì và dở ở bước nào
+3. Ghi mọi quyết định ta chốt trong session này vào mục "Quyết định đã chốt"
+4. Ghi bug đã biết chưa sửa
+
+Chỉ sửa TASKS.md, đừng sửa gì khác.</code></pre></figure><p>Session sau bạn chỉ cần: <em>"Đọc AGENTS.md và docs/TASKS.md. Tiếp tục từ chỗ đang dở."</em></p><h3 id="9143-chia-task-đúng-kích-cỡ" class="h h--3">9.14.3 Chia task đúng kích cỡ<a class="anchor" href="#9143-chia-task-đúng-kích-cỡ" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Kích cỡ task</th><th>Ví dụ</th><th>Đánh giá</th></tr></thead><tbody><tr><td><strong>Quá nhỏ</strong></td><td>"Thêm dấu chấm phẩy"</td><td>Tự làm nhanh hơn</td></tr><tr><td><strong>Vừa</strong> ✅</td><td>"Viết <code>inventory_ui.gd</code>" (1 file, ~150 dòng, spec rõ)</td><td>Điểm ngọt</td></tr><tr><td><strong>Vừa</strong> ✅</td><td>"Sửa bug cổng không mở, đây là log"</td><td>Điểm ngọt</td></tr><tr><td><strong>Hơi lớn</strong> ⚠️</td><td>"Viết cả hệ thống dialog: autoload + UI + 3 file JSON"</td><td>Chia thành 3 task</td></tr><tr><td><strong>Quá lớn</strong> ❌</td><td>"Làm hết chương 06"</td><td>AI sẽ đi lệch, bạn không review được</td></tr></tbody></table></div><p>Nguyên tắc: <strong>một task = một thứ bạn có thể test trong 2 phút.</strong></p><h3 id="9144-kiểu-prompt-làm-nhiều-task---dùng-cẩn-thận" class="h h--3">9.14.4 Kiểu prompt "làm nhiều task" — dùng cẩn thận<a class="anchor" href="#9144-kiểu-prompt-làm-nhiều-task---dùng-cẩn-thận" aria-label="Liên kết tới mục này">#</a></h3><p>Đôi khi bạn muốn giao một loạt:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đây là 4 task ĐỘC LẬP. Làm lần lượt, sau mỗi task DỪNG và chờ tôi OK
+trước khi sang task sau.
+
+TASK 1: [...]
+TASK 2: [...]
+TASK 3: [...]
+TASK 4: [...]
+
+Bắt đầu từ task 1.</code></pre></figure><p>Câu "DỪNG và chờ" là quan trọng. Không có nó, bạn nhận về 4 task cùng lúc và không review nổi.</p><hr class="rule"><h2 id="915-git-discipline-khi-làm-với-ai" class="h h--2">9.15 Git discipline khi làm với AI<a class="anchor" href="#915-git-discipline-khi-làm-với-ai" aria-label="Liên kết tới mục này">#</a></h2><p>Đây là <strong>van an toàn</strong> của bạn. AI có thể ghi sai file, xóa code bạn cần, hoặc đơn giản là làm ra thứ bạn muốn bỏ.</p><h3 id="quy-tắc" class="h h--3">Quy tắc<a class="anchor" href="#quy-tắc" aria-label="Liên kết tới mục này">#</a></h3><ol class="list"><li><strong>Commit trước khi giao task cho AI.</strong> Working tree phải sạch. Không có ngoại lệ.</li><li><strong><code>git diff</code> trước khi commit code AI.</strong> Đọc từng dòng đổi.</li><li><strong>Commit nhỏ, thường xuyên.</strong> Một task = một commit.</li><li><strong>Không để AI commit.</strong> Bạn commit, sau khi đọc.</li><li><strong>Branch cho việc mạo hiểm.</strong> Đổi kiến trúc → <code>git checkout -b refactor-save</code>.</li></ol><h3 id="vòng-lặp-git-thực-tế" class="h h--3">Vòng lặp Git thực tế<a class="anchor" href="#vòng-lặp-git-thực-tế" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="bash"><figcaption><span class="code__lang">Shell</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-bash"># TRƯỚC khi giao task
+git status                    # phải sạch
+git log --oneline -3          # biết mình đang ở đâu
+
+# ... AI làm việc ...
+
+# SAU khi AI xong, TRƯỚC khi test
+git diff --stat               # có file nào lạ không? scope creep?
+git diff                      # đọc từng dòng
+
+# Nếu thấy sai hoàn toàn -&gt; bỏ hết, làm lại prompt
+git checkout -- .
+
+# Nếu ổn -&gt; test trong Godot -&gt; nếu pass:
+git add -A
+git commit -m "feat: hệ thống túi đồ (UI + logic hiển thị)"</code></pre></figure><h3 id="commit-message---nhờ-ai-viết" class="h h--3">Commit message — nhờ AI viết<a class="anchor" href="#commit-message---nhờ-ai-viết" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đây là git diff của tôi:
+[dán output git diff]
+
+Viết commit message theo Conventional Commits:
+- Dòng đầu ≤ 60 ký tự, tiếng Việt
+- Body chỉ khi cần giải thích TẠI SAO (không mô tả lại code)
+- prefix: feat/fix/refactor/docs/chore</code></pre></figure><h3 id="khi-ai-làm-hỏng-thứ-gì" class="h h--3">Khi AI làm hỏng thứ gì<a class="anchor" href="#khi-ai-làm-hỏng-thứ-gì" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="bash"><figcaption><span class="code__lang">Shell</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-bash"># Xem chính xác nó đổi gì so với commit cuối
+git diff HEAD
+
+# Bỏ thay đổi ở 1 file cụ thể
+git checkout -- scripts/actors/player.gd
+
+# Bỏ hết
+git checkout -- .
+
+# Đã commit rồi nhưng muốn bỏ (chưa push)
+git reset --hard HEAD~1
+
+# Đã commit và muốn giữ lịch sử
+git revert HEAD</code></pre></figure><blockquote class="note"><p>Nếu bạn chưa từng dùng Git: học <strong>4 lệnh</strong> là đủ để an toàn — <code>git status</code>, <code>git diff</code>, <code>git add -A &amp;&amp; git commit -m "..."</code>, <code>git checkout -- .</code>. Đó là 30 phút học đổi lấy sự an tâm hoàn toàn khi làm việc với AI.</p></blockquote><hr class="rule"><h2 id="916-chi-phí-thời-gian-thực-tế" class="h h--2">9.16 Chi phí &amp; thời gian thực tế<a class="anchor" href="#916-chi-phí-thời-gian-thực-tế" aria-label="Liên kết tới mục này">#</a></h2><h3 id="9161-ai-tiết-kiệm-bao-nhiêu---số-thật" class="h h--3">9.16.1 AI tiết kiệm bao nhiêu — số thật<a class="anchor" href="#9161-ai-tiết-kiệm-bao-nhiêu---số-thật" aria-label="Liên kết tới mục này">#</a></h3><p>Dựa trên các hệ thống trong tài liệu này:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Hệ thống</th><th>Tự viết (người mới)</th><th>Với AI</th><th>Tiết kiệm</th></tr></thead><tbody><tr><td><code>GameState</code> (flags + inventory)</td><td>3–4h</td><td>40 phút</td><td>~85%</td></tr><tr><td>Dialogue system + UI typewriter</td><td>8–12h</td><td>2–3h</td><td>~75%</td></tr><tr><td>Inventory UI</td><td>5–6h</td><td>1–1.5h</td><td>~75%</td></tr><tr><td>Save/load JSON</td><td>4–5h</td><td>1h</td><td>~80%</td></tr><tr><td>SceneRouter + fade</td><td>3h</td><td>45 phút</td><td>~75%</td></tr><tr><td>Audio autoload</td><td>3h</td><td>40 phút</td><td>~80%</td></tr><tr><td>Player controller</td><td>4h</td><td>1.5h + <strong>2h tune</strong></td><td>~10% (tune không giảm)</td></tr><tr><td>Camera rig</td><td>2h</td><td>30 phút + <strong>1h tune</strong></td><td>~25%</td></tr><tr><td>Debug menu</td><td>2h</td><td>20 phút</td><td>~85%</td></tr><tr><td>Test suite</td><td>4h</td><td>45 phút</td><td>~80%</td></tr><tr><td><strong>Pixel art nhân vật (35 frame)</strong></td><td>20–30h</td><td>20–30h</td><td><strong>~0%</strong></td></tr><tr><td><strong>Level design (2 map)</strong></td><td>10–15h</td><td>10–15h</td><td><strong>~0%</strong></td></tr><tr><td><strong>Puzzle design</strong></td><td>5h</td><td>4h</td><td>~20%</td></tr><tr><td><strong>Playtest + iterate</strong></td><td>10h</td><td>10h</td><td><strong>~0%</strong></td></tr></tbody></table></div><p><strong>Tổng cho MVP</strong>: từ ~90h xuống ~55h. Tiết kiệm <strong>~40%</strong>.</p><h3 id="9162-chỗ-ai-làm-bạn-chậm-hơn" class="h h--3">9.16.2 Chỗ AI làm bạn CHẬM HƠN<a class="anchor" href="#9162-chỗ-ai-làm-bạn-chậm-hơn" aria-label="Liên kết tới mục này">#</a></h3><p>Trung thực: có những chỗ AI làm bạn chậm hơn tự làm.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Tình huống</th><th>Vì sao chậm hơn</th></tr></thead><tbody><tr><td><strong>Task cực nhỏ</strong> (đổi 1 số, thêm 1 dòng)</td><td>Viết prompt lâu hơn tự sửa</td></tr><tr><td><strong>Bạn chưa biết mình muốn gì</strong></td><td>AI code sai hướng, bạn bỏ, làm lại. 3 vòng = 1 giờ mất</td></tr><tr><td><strong>Tune game feel</strong></td><td>Mỗi vòng phải: đổi số → chạy → cảm nhận. AI không thêm được gì. Tự kéo slider trong Inspector nhanh hơn</td></tr><tr><td><strong>Sửa scene</strong></td><td>AI không làm được, bạn vẫn phải làm tay, cộng thời gian đọc mô tả</td></tr><tr><td><strong>Debug lỗi cảm giác</strong> ("camera hơi trễ")</td><td>Không mô tả được thành text cho AI</td></tr><tr><td><strong>Vẽ pixel art nhân vật</strong></td><td>Gen 8 lần vẫn không dùng được = 40 phút mất</td></tr><tr><td><strong>Bạn không đọc code nó viết</strong></td><td>Nợ kỹ thuật tích lại, tuần thứ 4 bạn trả gấp 3</td></tr></tbody></table></div><p><strong>Dấu hiệu bạn đang dùng AI sai</strong>: bạn không hiểu code trong project của mình. Khi đó dừng lại, đọc, hỏi AI giải thích, rồi đi tiếp.</p><h3 id="9163-nguyên-tắc-phân-bổ" class="h h--3">9.16.3 Nguyên tắc phân bổ<a class="anchor" href="#9163-nguyên-tắc-phân-bổ" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Task có spec rõ + code thuần logic     → AI (tiết kiệm 75-85%)
+Task cần cảm nhận                       → Tự làm (AI không giúp)
+Task chưa rõ                            → Pair TRƯỚC (làm rõ), rồi AI
+Task &lt; 5 phút tự làm                    → Tự làm</code></pre></figure><hr class="rule"><h2 id="917-checklist-trước-khi-merge-code-ai" class="h h--2">9.17 Checklist trước khi merge code AI<a class="anchor" href="#917-checklist-trước-khi-merge-code-ai" aria-label="Liên kết tới mục này">#</a></h2><p>In ra dán màn hình. Dùng mỗi lần.</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">□ 1.  git diff --stat: chỉ có file trong phạm vi task?
+□ 2.  Đọc hết diff. Hiểu MỌI dòng? (nếu không -&gt; hỏi AI giải thích trước khi merge)
+□ 3.  Có state nào nằm ngoài GameState mà cần save không?
+□ 4.  Có get_node("../..") hoặc path cứng nào không?
+□ 5.  Signal: có nối lặp được không? Có disconnect ở chỗ cần?
+□ 6.  push_input_lock có pop ở MỌI đường return (kể cả return sớm khi lỗi)?
+□ 7.  API: có tên nào là Godot 3? (đối chiếu bảng 9.8 bẫy 1)
+□ 8.  await trong _ready?
+□ 9.  Magic number không giải thích?
+□ 10. Chạy game: luồng chính hoạt động?
+□ 11. Chạy lại level (reload): state có đúng?
+□ 12. Save -&gt; thoát game -&gt; load: state có đúng?
+□ 13. Làm lại hành động lần 2: có bị lặp/nhân đôi?
+□ 14. Nhấn linh tinh (spam E, mở túi lúc thoại, ESC giữa cutscene): có crash?
+□ 15. Panel Output/Debugger: có warning/error nào mới?
+□ 16. Cập nhật docs/TASKS.md
+□ 17. git commit với message rõ ràng</code></pre></figure><p>Mục <strong>11, 12, 13, 14</strong> là bốn mục bắt được nhiều bug nhất. Đừng bỏ.</p><p>Mục 14 (nhấn linh tinh) đặc biệt hiệu quả với game có nhiều state UI — 30 giây spam nút bắt được bug mà 10 phút test "đúng cách" bỏ qua.</p><hr class="rule"><h2 id="918-ví-dụ-session-hoàn-chỉnh-từ-đầu-tới-commit" class="h h--2">9.18 Ví dụ session hoàn chỉnh (từ đầu tới commit)<a class="anchor" href="#918-ví-dụ-session-hoàn-chỉnh-từ-đầu-tới-commit" aria-label="Liên kết tới mục này">#</a></h2><p>Đây là một session thật, rút gọn, để bạn thấy nhịp làm việc.</p><h3 id="bối-cảnh" class="h h--3">Bối cảnh<a class="anchor" href="#bối-cảnh" aria-label="Liên kết tới mục này">#</a></h3><p>Bạn đã có: <code>GameState</code>, <code>Interactable</code>, <code>Dialogue</code> chạy được. Giờ cần <code>ItemPickup</code>.</p><h3 id="lượt-1---bạn" class="h h--3">Lượt 1 — bạn<a class="anchor" href="#lượt-1---bạn" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Đọc AGENTS.md + scripts/systems/interactable.gd + scripts/systems/item_data.gd.
+
+Task: scripts/props/item_pickup.gd — vật phẩm nhặt được trong world.
+
+Hành vi:
+- Kế thừa Interactable. prompt_text = "Nhặt".
+- @export item: ItemData, @export amount: int = 1
+- @export pickup_flag: String — set khi nhặt, để item không hồi sinh khi
+  reload level. Nếu flag đã có ở _ready -&gt; queue_free() ngay.
+- @export pickup_message: String — nếu rỗng, tự sinh "Nhận được &lt;tên&gt;" (x&lt;n&gt; nếu &gt;1)
+- interact(): add_item -&gt; set flag -&gt; SFX "pickup" -&gt; await HUD.show_toast(msg)
+  -&gt; emit interacted -&gt; queue_free()
+- Sprite nhấp nhô lên xuống liên tục (tween loop) để dễ thấy.
+
+RÀNG BUỘC
+- 1 file duy nhất. Tối đa 60 dòng.
+- Không sửa interactable.gd, không sửa game_state.gd.
+- Static typing, comment tiếng Việt giải thích tại sao.
+
+ĐỊNH DẠNG
+1. Cây scene item_pickup.tscn (tên + kiểu node + property cần set)
+2. Code
+3. Cách test (4 bước)</code></pre></figure><h3 id="lượt-2---ai-trả-về" class="h h--3">Lượt 2 — AI trả về<a class="anchor" href="#lượt-2---ai-trả-về" aria-label="Liên kết tới mục này">#</a></h3><p>Cây scene + code (bản như ở chương 06 mục 6.4.2) + cách test. Kèm ghi chú:</p><blockquote class="note"><p><em>"Lưu ý: <code>create_tween()</code> mặc định bị hủy khi node bị free — điều đó là mong muốn ở đây. Tôi không chắc <code>Tween.TRANS_SINE</code> có tên đúng vậy ở 4.4, kiểm tra F1 nếu báo lỗi."</em></p></blockquote><p>Ghi chú cuối là dấu hiệu tốt — AI đang nói ra chỗ nó không chắc, đúng như <code>AGENTS.md</code> §5.6 yêu cầu.</p><h3 id="lượt-3---bạn-đọc-code-bước-read" class="h h--3">Lượt 3 — bạn đọc code (bước READ)<a class="anchor" href="#lượt-3---bạn-đọc-code-bước-read" aria-label="Liên kết tới mục này">#</a></h3><p>Bạn phát hiện 2 điều:</p><ol class="list"><li><code>_start_bob()</code> gọi <code>create_tween()</code> trong <code>_ready()</code>, nhưng nếu <code>queue_free()</code> đã được gọi ở dòng trên (khi flag đã có) thì <code>_ready</code> vẫn chạy tiếp → tween trên node đang bị free. Code AI <strong>có</strong> <code>return</code> sau <code>queue_free()</code> → OK, không phải bug.</li><li><code>interact()</code> không kiểm <code>item == null</code>... thực ra <strong>có</strong> <code>push_warning</code>. OK.</li><li>Nhưng: <code>interact()</code> gọi <code>queue_free()</code> <strong>sau</strong> <code>await HUD.show_toast(msg)</code>. Trong 1.8 giây đó, người chơi có thể nhấn E lần nữa → nhặt 2 lần!</li></ol><p>Bạn báo lại:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Code ổn, nhưng có 1 bug: giữa lúc await show_toast (1.8s), player nhấn E lần
+nữa thì interact() chạy lại -&gt; add_item 2 lần.
+
+Sửa: vô hiệu hóa tương tác NGAY khi bắt đầu interact, trước await.
+
+CHỈ sửa chuyện đó. Cho tôi diff.</code></pre></figure><h3 id="lượt-4---ai-trả-diff" class="h h--3">Lượt 4 — AI trả diff<a class="anchor" href="#lượt-4---ai-trả-diff" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">scripts/props/item_pickup.gd
+
+  Trong interact(), THÊM ngay dòng đầu tiên (sau check item == null):
+
++	# Vô hiệu hóa ngay để player không nhặt 2 lần trong lúc await toast.
++	set_active(false)
+
+  Lý do đặt sau check null: nếu item chưa gán, ta muốn item vẫn tương tác
+  được để bạn thấy warning lặp lại khi debug.</code></pre></figure><p>Tốt: diff 2 dòng, có giải thích lý do vị trí. Không sửa gì khác.</p><h3 id="lượt-5---bạn-dựng-scene-test" class="h h--3">Lượt 5 — bạn dựng scene + test<a class="anchor" href="#lượt-5---bạn-dựng-scene-test" aria-label="Liên kết tới mục này">#</a></h3><p>Bạn dựng <code>item_pickup.tscn</code> trong editor theo mô tả, gán <code>fish.tres</code>, <code>pickup_flag = "picked_fish_dock"</code>, đặt vào town.</p><p>Test:</p><ul class="list"><li>✅ Nhặt được, toast hiện, item vào túi</li><li>✅ Spam E: chỉ nhặt 1 lần</li><li>✅ Reload level (F6): item không hồi sinh</li><li>❌ <strong>Save → load: item hồi sinh!</strong></li></ul><h3 id="lượt-6---bạn-báo-bug" class="h h--3">Lượt 6 — bạn báo bug<a class="anchor" href="#lượt-6---bạn-báo-bug" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">1. TÔI LÀM: nhặt cá -&gt; save ở save point -&gt; thoát game -&gt; chạy lại -&gt; load
+2. MONG ĐỢI: cá không xuất hiện lại ở bến
+3. THỰC TẾ: cá xuất hiện lại, nhặt được lần 2 -&gt; túi có 2 cá
+4. LOG: không có lỗi
+5. TÔI ĐÃ THỬ: nhấn F3 sau load -&gt; Dbg.dump_state() in ra:
+   Flags (3): gave_fish, met_bay, picked_fish_dock
+   -&gt; flag CÓ trong state.
+   Nhưng cá vẫn hiện.</code></pre></figure><h3 id="lượt-7---ai-phân-tích" class="h h--3">Lượt 7 — AI phân tích<a class="anchor" href="#lượt-7---ai-phân-tích" aria-label="Liên kết tới mục này">#</a></h3><blockquote class="note"><p>Flag có trong state nhưng item vẫn hiện → nghĩa là <code>_ready()</code> của <code>ItemPickup</code> chạy <strong>trước</strong> khi <code>GameState.from_dict()</code> được gọi.</p><p>Thứ tự thực tế trong <code>SaveSystem.load_game()</code>: <code>GameState.from_dict(state)</code> <strong>rồi</strong> <code>SceneRouter.goto_level(...)</code>. Vậy thứ tự đúng.</p><p>Nhưng: <code>main.gd::_ready()</code> gọi <code>GameState.reset()</code> <strong>rồi</strong> <code>goto_level(FIRST_LEVEL)</code>. Nếu bạn load từ menu chính sau khi <code>main.gd</code> đã load town, thì town đã tồn tại với item, và <code>goto_level</code> mới sẽ tạo town <strong>mới</strong> — item mới đọc flag đúng...</p><p>Cho tôi 2 print để xác định:</p><ol class="list"><li><code>item_pickup.gd::_ready()</code> đầu tiên: <code>print("[PICKUP] ready, flag=%s, has=%s" % [pickup_flag, GameState.has_flag(pickup_flag)])</code></li><li><code>save_system.gd::load_game()</code> sau <code>from_dict</code>: <code>print("[SAVE] state applied, flags=%s" % GameState.flags)</code></li></ol></blockquote><p>Bạn chạy, dán:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">[PICKUP] ready, flag=, has=false
+[SAVE] state applied, flags={ "met_bay": true, "gave_fish": true, "picked_fish_dock": true }</code></pre></figure><p><code>flag=</code> <strong>rỗng!</strong> → bạn quên gán <code>pickup_flag</code> trong Inspector cho instance ở town (bạn gán cho scene gốc <code>item_pickup.tscn</code> chứ không phải instance).</p><h3 id="lượt-8---kết-thúc" class="h h--3">Lượt 8 — kết thúc<a class="anchor" href="#lượt-8---kết-thúc" aria-label="Liên kết tới mục này">#</a></h3><p>Bạn gán lại trong Inspector. Test lại: pass hết.</p><figure class="code" data-lang="bash"><figcaption><span class="code__lang">Shell</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-bash">git diff --stat
+# 1 file changed, 58 insertions(+)
+git add -A
+git commit -m "feat: ItemPickup — nhặt item, chống nhặt lặp, nhớ qua save"</code></pre></figure><p>Rồi:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Cập nhật docs/TASKS.md: ItemPickup xong (commit vừa rồi).
+Thêm vào mục "Bug đã biết": pickup_flag phải gán trên INSTANCE trong level,
+không phải trên scene gốc — nếu quên, item hồi sinh sau save/load.</code></pre></figure><h3 id="bài-học-từ-session-này" class="h h--3">Bài học từ session này<a class="anchor" href="#bài-học-từ-session-này" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Quan sát</th><th>Bài học</th></tr></thead><tbody><tr><td>AI viết code đúng ~90% ngay lần đầu</td><td>Với spec rõ + <code>AGENTS.md</code>, chất lượng cao</td></tr><tr><td>Bug "nhặt 2 lần" do <strong>bạn</strong> đọc code phát hiện, không phải test</td><td>Bước READ không thể bỏ</td></tr><tr><td>Bug save/load do <strong>bạn</strong> cấu hình sai, không phải code sai</td><td>AI không thấy Inspector của bạn</td></tr><tr><td>Print debug tìm ra bug trong 1 lượt</td><td>Tạo dữ liệu &gt; đoán giả thuyết</td></tr><tr><td>Toàn bộ session ~25 phút</td><td>Tự viết mất ~2h</td></tr></tbody></table></div><hr class="rule"><h2 id="919-bài-tập" class="h h--2">9.19 Bài tập<a class="anchor" href="#919-bài-tập" aria-label="Liên kết tới mục này">#</a></h2><ol class="list"><li><strong>Viết <code>AGENTS.md</code> cho project của bạn.</strong> Copy template 9.4, sửa cho khớp. Dành 45 phút thật. Đây là bài tập giá trị nhất chương này.</li><li>Tạo <code>docs/TASKS.md</code> với đủ 4 mục (Đang làm / Xong / Quyết định đã chốt / Bug đã biết).</li><li>Lấy prompt 9.5(a) (Dialogue), chạy thật với AI. Đọc code nhận về theo checklist 9.6.2. <strong>Ghi lại</strong> bạn tìm được mấy vấn đề.</li><li>Chạy Pattern 5 (Adversarial review) trên một file code bạn <strong>tự viết</strong>. Ghi lại nó tìm được gì. (Thường sẽ có ít nhất 1 thứ thật.)</li><li>Nhờ AI viết <code>debug_menu.gd</code> theo 9.12.4. Dùng nó test câu đố 3 mà không chơi lại từ đầu.</li><li>Nhờ AI viết validator dialog JSON theo 9.11.3. Chạy trên các file dialog của bạn. Nếu nó tìm được lỗi → bạn vừa tiết kiệm một buổi debug.</li><li>Nhờ AI viết test suite cho <code>GameState</code> theo 9.13.3. Chạy headless. Đảm bảo 12/12 PASS.</li><li><strong>Bài tập tự nhận thức</strong>: chọn một task bạn đã giao AI. Ước lượng tự làm mất bao lâu. So với thời gian thật đã bỏ ra (kể cả review + sửa). AI có thật sự nhanh hơn cho task đó không? Ghi lại kết luận để lần sau chọn đúng.</li><li>Cố tình giao AI một task mơ hồ ("làm hệ thống chiến đấu"). Xem nó bịa ra gì. Đây là bài học trực quan nhất về tầm quan trọng của spec.</li><li>Chạy Pattern 1 (Explain before code) cho một task lớn. So sánh với việc để nó code luôn. Ghi lại bạn thích cách nào.</li></ol><hr class="rule"><h2 id="920-lỗi-thường-gặp-khi-làm-việc-với-ai" class="h h--2">9.20 Lỗi thường gặp (khi làm việc với AI)<a class="anchor" href="#920-lỗi-thường-gặp-khi-làm-việc-với-ai" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Triệu chứng</th><th>Nguyên nhân</th><th>Cách sửa</th></tr></thead><tbody><tr><td>Code AI không compile</td><td>API Godot 3, hoặc bịa hàm</td><td>Bảng đối chiếu bẫy 1; ghi rõ bản Godot trong <code>AGENTS.md</code>; cho AI chạy <code>--check-only</code></td></tr><tr><td>Code chạy nhưng save không lưu</td><td>AI tạo state riêng thay vì dùng <code>GameState</code></td><td>Luật kiến trúc §3.1; checklist đọc code vòng 2</td></tr><tr><td>Null reference ở <code>@onready</code></td><td>Cây scene thật khác cây AI đề xuất</td><td>Dán cây scene thật (bẫy 7, script <code>dump_tree.gd</code>)</td></tr><tr><td>Sửa 5 vòng bug không hết</td><td>AI đang đoán, thiếu dữ liệu</td><td>Prompt "liệt kê giả định + cho tôi print" (9.6.4)</td></tr><tr><td><code>git diff</code> có 8 file cho task 1 file</td><td>Scope creep</td><td><code>AGENTS.md</code> §6; Pattern 2 "diff only"; Pattern 3 "constraint list"</td></tr><tr><td>Một cái cửa có 5 class</td><td>Over-engineering</td><td>Pattern 4 "budget"; câu "thà lặp code còn hơn 3 lớp trừu tượng"</td></tr><tr><td>AI đề xuất lại thứ bạn đã bác</td><td>Không có ký ức</td><td>Mục "Quyết định đã chốt" trong <code>TASKS.md</code></td></tr><tr><td>Codebase có 3 trường phái code</td><td>Không có quy ước ghi lại</td><td><code>AGENTS.md</code> §4 + mục quy ước animation (bẫy 6)</td></tr><tr><td>Hộp thoại hiện 2 lần</td><td>Signal nối lặp</td><td>Bẫy 8: <code>is_connected</code> check hoặc <code>CONNECT_ONE_SHOT</code></td></tr><tr><td>Node chưa sẵn sàng dù <code>_ready</code> xong</td><td><code>await</code> trong <code>_ready</code></td><td>Bẫy 9: tách ra <code>call_deferred</code></td></tr><tr><td>AI khăng khăng cách của nó đúng</td><td>Nó không chạy được game của bạn</td><td>Dán log/kết quả thật. Dữ liệu thắng lý lẽ</td></tr><tr><td>Bạn không hiểu code trong project mình</td><td>Bỏ bước READ nhiều lần</td><td>Dừng. Nhờ AI giải thích từng file. Đây là nợ phải trả sớm</td></tr><tr><td>Session dài, AI bắt đầu lệch</td><td>Context loãng</td><td>Session mới + đọc lại <code>AGENTS.md</code>/<code>TASKS.md</code></td></tr><tr><td>AI nói "cách này nhanh hơn" không có số</td><td>Tối ưu sớm</td><td>Đo bằng <code>Debugger → Monitors</code> trước</td></tr><tr><td>AI làm hỏng scene</td><td>Nó sửa <code>.tscn</code></td><td><code>AGENTS.md</code> §2 cấm. <code>git checkout -- *.tscn</code></td></tr><tr><td>Asset AI nhìn "lạc đàn"</td><td>Chưa quantize palette / lệch nguồn sáng</td><td>Chương 03 mục 3.7, 3.8</td></tr><tr><td>Nhạc AI không ra chất chip</td><td>Bản chất tool text-to-music</td><td>Chương 08 mục 8.3: dùng AI cho lý thuyết nhạc, tự làm audio</td></tr><tr><td>Dialog AI dài quá hộp thoại</td><td>Không ràng buộc số ký tự</td><td>Thêm "mỗi dòng ≤ 90 ký tự" vào prompt</td></tr><tr><td>Flag/item id sai chính tả trong JSON</td><td>AI bịa tên</td><td>Dán danh sách hợp lệ vào prompt + viết validator (9.11.3)</td></tr><tr><td>Bạn mất 1 giờ cho task tự làm 10 phút</td><td>Dùng AI cho task quá nhỏ / cần cảm nhận</td><td>Bảng 9.7 + nguyên tắc 9.16.3</td></tr></tbody></table></div><hr class="rule"><h2 id="921-tóm-lại-10-quy-tắc" class="h h--2">9.21 Tóm lại: 10 quy tắc<a class="anchor" href="#921-tóm-lại-10-quy-tắc" aria-label="Liên kết tới mục này">#</a></h2><ol class="list"><li><strong>Viết <code>AGENTS.md</code> trước khi viết dòng code đầu tiên.</strong> Nó là bộ nhớ của AI.</li><li><strong>Luôn đọc code AI viết.</strong> 3 phút đọc đổi 3 giờ debug.</li><li><strong>Chia task nhỏ</strong>: một task = một thứ test được trong 2 phút.</li><li><strong>Dán log nguyên văn</strong>, không kể lại bằng lời.</li><li><strong>Tạo dữ liệu (print) trước khi hỏi giả thuyết</strong> khi debug.</li><li><strong>Commit trước khi giao task.</strong> Git là van an toàn.</li><li><strong>AI làm việc có đúng/sai. Bạn làm việc có hay/dở.</strong></li><li><strong>Ghi mọi quyết định vào file</strong>, không giữ trong đầu — AI không đọc được đầu bạn.</li><li><strong>Nói ra chỗ AI hay sai</strong> (API version, kiến trúc, số ký tự) trong prompt, trước khi nó sai.</li><li><strong>Nếu bạn không hiểu project của mình nữa, dừng lại.</strong> Đó là tín hiệu duy nhất cho biết bạn đang dùng AI sai cách.</li></ol>
+    </article>
+
+    <nav class="pager" aria-label="Chuyển chương"><a class="pager__link pager__link--prev" href="08-audio-8bit.html"><span class="pager__dir">← Chương 08</span><span class="pager__title">Âm thanh 8-bit</span></a><a class="pager__link pager__link--next" href="10-publish.html"><span class="pager__dir">Chương 10 →</span><span class="pager__title">Build &amp; phát hành</span></a></nav>
+
+    <footer class="foot">
+      <p class="foot__note">Viết theo Godot 4.3–4.5 — kiểm tra lại trên bản bạn dùng</p>
+      <p class="foot__links"><a href="index.html">← Về mục lục</a> · <a href="#main">↑ Đầu trang</a></p>
+    </footer>
+  </main>
+</div>
+
+<button class="totop" id="toTop" type="button" aria-label="Lên đầu trang">↑</button>
+<div class="scrim" id="scrim" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>

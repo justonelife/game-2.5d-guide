@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#12101a">
+<meta name="description" content="Bộ tài liệu tiếng Việt: dựng game phiêu lưu 2.5D pixel art 8-bit bằng Godot 4, có định hướng workflow AI.">
+<title>Làm game phiêu lưu 2.5D 8-bit bằng Godot 4</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2312101a'/%3E%3Crect x='6' y='2' width='4' height='3' fill='%23ffc857'/%3E%3Crect x='5' y='5' width='6' height='2' fill='%23ffe3a0'/%3E%3Crect x='6' y='7' width='4' height='6' fill='%235ad1e6'/%3E%3Crect x='4' y='13' width='8' height='2' fill='%23474063'/%3E%3C/svg%3E">
+<script>/* set the saved theme before first paint so there is no flash */(function(){try{var t=localStorage.getItem("g25d-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body class="page page--index">
+<header class="hero">
+  <div class="hero__tools">
+    <button class="iconbtn themebtn" type="button" data-theme-toggle aria-pressed="false" aria-label="Đổi nền sáng/tối">
+      <span class="themebtn__txt">Sáng</span>
+    </button>
+  </div>
+  <p class="hero__kicker">Tài liệu tiếng Việt · Godot 4.3–4.5</p>
+  <h1 class="hero__title"><span class="hero__title-line">Làm game phiêu lưu</span><span class="hero__title-line hero__title-line--accent">2.5D 8-bit</span><span class="hero__title-line">bằng Godot 4</span></h1>
+  <p class="hero__lede">Pixel art 2D đặt trong không gian 3D thật — kiểu HD-2D. Từ cài Godot tới export lên itch.io, kèm cách dùng AI như một thành viên trong team.</p>
+  <dl class="stats">
+    <div class="stat"><dt>Chương</dt><dd>11</dd></div>
+    <div class="stat"><dt>Dòng</dt><dd>7449</dd></div>
+    <div class="stat"><dt>Engine</dt><dd>Godot 4</dd></div>
+  </dl>
+  <a class="btn btn--primary" href="00-to-doc.html">Bắt đầu từ chương 00 <span aria-hidden="true">→</span></a>
+</header>
+
+<main class="shell shell--index" id="main">
+  <section class="section" aria-labelledby="h-style">
+    <h2 class="section__title" id="h-style">Phong cách chốt sẵn</h2>
+    <div class="prose prose--intro"><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Trục</th><th>Lựa chọn</th></tr></thead><tbody><tr><td><strong>Kỹ thuật</strong></td><td>Engine 3D thật (Godot 4, <code>Node3D</code>, <code>Camera3D</code>)</td></tr><tr><td><strong>Art</strong></td><td>Pixel art 2D đặt trong không gian 3D (<code>Sprite3D</code> / <code>AnimatedSprite3D</code>) — kiểu HD-2D / Octopath Traveler / Live A Live remake</td></tr><tr><td><strong>Retro level</strong></td><td>8-bit: palette giới hạn, tilemap, animation frame-by-frame, chiptune</td></tr><tr><td><strong>Genre</strong></td><td>Phiêu lưu: đi lại, hội thoại NPC, inventory, giải đố, chương/màn, save point. <strong>Không</strong> phải action nặng</td></tr></tbody></table></div></div>
+  </section>
+
+  <section class="section" aria-labelledby="h-toc">
+    <h2 class="section__title" id="h-toc">Mục lục</h2>
+    <div class="grid">
+    <a class="card" href="00-to-doc.html">
+      <span class="card__num">00</span>
+      <span class="card__body">
+        <span class="card__title">Tổng quan tài liệu &amp; Game mẫu</span>
+        <span class="card__desc">Tổng quan tài liệu, lộ trình học, giới thiệu game mẫu "Ngọn Đèn Cá Nục"</span>
+        <span class="card__meta"><span class="chip">Đọc đầu tiên</span><span class="card__lines">131 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="01-setup.html">
+      <span class="card__num">01</span>
+      <span class="card__body">
+        <span class="card__title">Thiết lập dự án Godot 4 cho pixel 2.5D</span>
+        <span class="card__desc">Cài Godot 4.x, cấu hình project, pixel-perfect, cấu trúc thư mục</span>
+        <span class="card__meta"><span class="chip">Ngày 1</span><span class="card__lines">308 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="02-25d-concepts.html">
+      <span class="card__num">02</span>
+      <span class="card__body">
+        <span class="card__title">Hiểu 2.5D trong Godot 4</span>
+        <span class="card__desc">Sprite3D, billboard, camera, trục, collision</span>
+        <span class="card__meta"><span class="chip">Ngày 1–2</span><span class="card__lines">360 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="03-pixel-art-ai.html">
+      <span class="card__num">03</span>
+      <span class="card__body">
+        <span class="card__title">Pixel art pipeline + dùng AI sinh asset</span>
+        <span class="card__desc">Pixel art pipeline + dùng AI sinh asset (thật thà về giới hạn)</span>
+        <span class="card__meta"><span class="chip">Song song</span><span class="card__lines">393 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="04-player-character.html">
+      <span class="card__num">04</span>
+      <span class="card__body">
+        <span class="card__title">Nhân vật điều khiển</span>
+        <span class="card__desc">CharacterBody3D, input, animation, camera follow</span>
+        <span class="card__meta"><span class="chip">Ngày 2–3</span><span class="card__lines">523 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="05-world-diorama.html">
+      <span class="card__num">05</span>
+      <span class="card__body">
+        <span class="card__title">Dựng thế giới: diorama 3D với art 2D</span>
+        <span class="card__desc">Dựng thế giới diorama 3D: lớp sâu, GridMap, ánh sáng, sprite đứng</span>
+        <span class="card__meta"><span class="chip">Ngày 3–5</span><span class="card__lines">539 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="06-adventure-mechanics.html">
+      <span class="card__num">06</span>
+      <span class="card__body">
+        <span class="card__title">Cơ chế phiêu lưu</span>
+        <span class="card__desc">Hội thoại, inventory, cổng khóa, trigger, flags, save/load, chuyển màn</span>
+        <span class="card__meta"><span class="chip">Ngày 5–10</span><span class="card__lines">1703 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="07-story-design.html">
+      <span class="card__num">07</span>
+      <span class="card__body">
+        <span class="card__title">Cốt truyện &amp; thiết kế game phiêu lưu</span>
+        <span class="card__desc">Thiết kế adventure, câu đố hay, pacing, viết dialog + design đầy đủ game mẫu</span>
+        <span class="card__meta"><span class="chip">Đọc trước khi code màn</span><span class="card__lines">467 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="08-audio-8bit.html">
+      <span class="card__num">08</span>
+      <span class="card__body">
+        <span class="card__title">Âm thanh 8-bit</span>
+        <span class="card__desc">Chiptune, SFX, tích hợp Godot, bản quyền + AI gen nhạc</span>
+        <span class="card__meta"><span class="chip">Ngày 10+</span><span class="card__lines">535 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="09-ai-workflow.html">
+      <span class="card__num">09</span>
+      <span class="card__body">
+        <span class="card__title">Workflow làm game Godot với AI</span>
+        <span class="card__desc"><strong>Chương dày nhất</strong>: workflow thực dụng với Claude Code/Cursor, prompt mẫu, bẫy, <code>AGENTS.md</code> template</span>
+        <span class="card__meta"><span class="chip">Đọc sớm, dùng liên tục</span><span class="card__lines">1969 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="10-publish.html">
+      <span class="card__num">10</span>
+      <span class="card__body">
+        <span class="card__title">Build &amp; phát hành</span>
+        <span class="card__desc">Export desktop/web/mobile, optimize, itch.io, roadmap sau MVP</span>
+        <span class="card__meta"><span class="chip">Cuối</span><span class="card__lines">521 dòng</span></span>
+      </span>
+      <span class="card__go" aria-hidden="true">→</span>
+    </a>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="h-how">
+    <h2 class="section__title" id="h-how">Đọc theo thứ tự nào</h2>
+    <ol class="steps">
+      <li><strong>00</strong> để biết mình sẽ build cái gì.</li>
+      <li><strong>01 → 02 → 04</strong> để có nhân vật chạy được trong world 3D. Mốc “game bắt đầu có hồn”.</li>
+      <li><strong>09</strong> đọc <em>sớm</em>, không để cuối — bạn sẽ dùng AI ở mọi chương sau đó.</li>
+      <li><strong>06</strong> nặng nhất về code. Chia nhỏ: dialog → inventory → flags → save.</li>
+      <li><strong>07</strong> đọc bất cứ lúc nào bí ý tưởng.</li>
+    </ol>
+  </section>
+
+  <footer class="foot">
+    <p class="foot__note">Viết theo Godot 4.3–4.5 — kiểm tra lại trên bản bạn dùng</p>
+  </footer>
+</main>
+<script src="app.js" defer></script>
+</body>
+</html>

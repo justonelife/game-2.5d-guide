@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#12101a">
+<meta name="description" content="Chiptune, SFX, tích hợp Godot, bản quyền + AI gen nhạc">
+<title>08 Âm thanh 8-bit · Godot 4 2.5D</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2312101a'/%3E%3Crect x='6' y='2' width='4' height='3' fill='%23ffc857'/%3E%3Crect x='5' y='5' width='6' height='2' fill='%23ffe3a0'/%3E%3Crect x='6' y='7' width='4' height='6' fill='%235ad1e6'/%3E%3Crect x='4' y='13' width='8' height='2' fill='%23474063'/%3E%3C/svg%3E">
+<script>/* set the saved theme before first paint so there is no flash */(function(){try{var t=localStorage.getItem("g25d-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body class="page page--chapter">
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="progressBar"></span></div>
+
+<header class="topbar">
+  <a class="topbar__back" href="index.html"><span aria-hidden="true">←</span> Mục lục</a>
+  <span class="topbar__num">08</span>
+  <button class="iconbtn themebtn" type="button" data-theme-toggle aria-pressed="false" aria-label="Đổi nền sáng/tối">
+    <span class="themebtn__txt">Sáng</span>
+  </button>
+  <button class="iconbtn topbar__toc" id="tocToggle" type="button" aria-expanded="false" aria-controls="tocPanel">
+    <span class="topbar__toc-icon" aria-hidden="true"></span><span>Mục</span>
+  </button>
+</header>
+
+<div class="shell">
+  <nav class="toc" id="tocPanel" aria-label="Mục lục chương">
+    <p class="toc__title">Trong chương này</p>
+    <ol class="toc__list"><li class="toc__item toc__item--h2"><a href="#81-bạn-cần-bao-nhiêu">8.1 Bạn cần bao nhiêu</a></li><li class="toc__item toc__item--h2"><a href="#82-công-cụ-đều-free">8.2 Công cụ (đều free)</a></li><li class="toc__item toc__item--h3"><a href="#sfx---15-phút-là-có-đủ-12-tiếng">SFX — 15 phút là có đủ 12 tiếng</a></li><li class="toc__item toc__item--h3"><a href="#nhạc-chiptune">Nhạc chiptune</a></li><li class="toc__item toc__item--h3"><a href="#nhạc-chiptune-trong-30-phút-với-beepbox-không-cần-biết-nhạc">Nhạc chiptune trong 30 phút với BeepBox (không cần biết nhạc)</a></li><li class="toc__item toc__item--h2"><a href="#83-ai-gen-nhạc---nói-thẳng">8.3 AI gen nhạc — nói thẳng</a></li><li class="toc__item toc__item--h3"><a href="#tình-hình">Tình hình</a></li><li class="toc__item toc__item--h3"><a href="#bản-quyền-nhạc-ai---kiểm-kỹ">Bản quyền nhạc AI — kiểm kỹ</a></li><li class="toc__item toc__item--h3"><a href="#nguồn-nhạcsfx-miễn-phí-hợp-lệ-an-toàn-hơn">Nguồn nhạc/SFX miễn phí hợp lệ (an toàn hơn)</a></li><li class="toc__item toc__item--h2"><a href="#84-định-dạng-import-vào-godot">8.4 Định dạng &amp; import vào Godot</a></li><li class="toc__item toc__item--h3"><a href="#cài-loop-cho-nhạc-ogg">Cài loop cho nhạc .ogg</a></li><li class="toc__item toc__item--h3"><a href="#normalize-âm-lượng---làm-sớm">Normalize âm lượng — làm sớm</a></li><li class="toc__item toc__item--h2"><a href="#85-audio-bus---thiết-lập-1-lần">8.5 Audio bus — thiết lập 1 lần</a></li><li class="toc__item toc__item--h2"><a href="#86-autoload-audio">8.6 Autoload Audio</a></li><li class="toc__item toc__item--h2"><a href="#87-âm-thanh-3d-audiostreamplayer3d">8.7 Âm thanh 3D (AudioStreamPlayer3D)</a></li><li class="toc__item toc__item--h2"><a href="#88-cắm-âm-thanh-vào-game">8.8 Cắm âm thanh vào game</a></li><li class="toc__item toc__item--h3"><a href="#bước-chân-đúng-nhịp">Bước chân đúng nhịp</a></li><li class="toc__item toc__item--h2"><a href="#89-menu-âm-lượng">8.9 Menu âm lượng</a></li><li class="toc__item toc__item--h2"><a href="#810-bài-tập">8.10 Bài tập</a></li><li class="toc__item toc__item--h2"><a href="#811-lỗi-thường-gặp">8.11 Lỗi thường gặp</a></li></ol>
+  </nav>
+
+  <main class="main" id="main">
+    <article class="prose">
+      <p class="eyebrow">Chương 08 · 535 dòng</p>
+      <h1 class="title">Âm thanh 8-bit</h1>
+      <p class="lede">Chiptune, SFX, tích hợp Godot, bản quyền + AI gen nhạc</p>
+      <hr class="rule rule--tight">
+      <p>Âm thanh là thứ có <strong>tỉ lệ hiệu quả/công sức cao nhất</strong> trong game indie. Một game blockout xám có nhạc tốt cảm giác hay hơn một game art đẹp mà im lặng.</p><hr class="rule"><h2 id="81-bạn-cần-bao-nhiêu" class="h h--2">8.1 Bạn cần bao nhiêu<a class="anchor" href="#81-bạn-cần-bao-nhiêu" aria-label="Liên kết tới mục này">#</a></h2><p>Cho MVP 5 phút:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Loại</th><th>Số lượng</th><th>Độ dài</th></tr></thead><tbody><tr><td>BGM làng (đêm, buồn, ấm)</td><td>1</td><td>45–90s có loop</td></tr><tr><td>BGM hầm (tối, căng)</td><td>1</td><td>45–90s có loop</td></tr><tr><td>BGM đỉnh/ending (sáng, giải thoát)</td><td>1</td><td>30–60s</td></tr><tr><td>SFX</td><td>10–14</td><td>0.1–1s</td></tr><tr><td>Ambience (sóng biển, gió)</td><td>1–2</td><td>loop 10s</td></tr></tbody></table></div><p><strong>Tổng: 3 nhạc + ~12 SFX.</strong> Đó là tất cả. Đừng làm 12 bài nhạc cho game 5 phút.</p><p>Danh sách SFX cần (khớp code chương 06):</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Tên</th><th>Dùng ở</th><th>Mô tả âm</th></tr></thead><tbody><tr><td><code>text_blip</code></td><td>Typewriter hộp thoại</td><td>Xung vuông rất ngắn, cao, nhẹ</td></tr><tr><td><code>menu_move</code></td><td>Chọn ô inventory</td><td>Blip thấp hơn</td></tr><tr><td><code>menu_confirm</code></td><td>Chọn lựa chọn thoại</td><td>2 note lên</td></tr><tr><td><code>menu_cancel</code></td><td>Đóng túi</td><td>2 note xuống</td></tr><tr><td><code>pickup</code></td><td>Nhặt item</td><td>Arpeggio 3 note lên, tươi</td></tr><tr><td><code>locked</code></td><td>Cổng khóa</td><td>Tiếng "cạch" thấp, noise ngắn</td></tr><tr><td><code>gate_open</code></td><td>Mở cổng</td><td>Noise dài + tiếng đá nghiến</td></tr><tr><td><code>torch_light</code></td><td>Thắp đuốc</td><td>Noise burst + rise</td></tr><tr><td><code>puzzle_fail</code></td><td>Đuốc sai</td><td>3 note xuống, buồn</td></tr><tr><td><code>puzzle_solved</code></td><td>Đuốc đúng</td><td>4-5 note lên, fanfare ngắn</td></tr><tr><td><code>save</code></td><td>Lưu game</td><td>Chime ấm, 2 note</td></tr><tr><td><code>footstep</code></td><td>Bước chân (tùy chọn)</td><td>Noise rất ngắn, ngẫu hóa cao độ</td></tr><tr><td><code>crate_push</code></td><td>Đẩy thùng</td><td>Noise ma sát, loop khi đang đẩy</td></tr><tr><td><code>lighthouse_lit</code></td><td>Ending</td><td>Fanfare dài, hoành tráng nhất game</td></tr></tbody></table></div><hr class="rule"><h2 id="82-công-cụ-đều-free" class="h h--2">8.2 Công cụ (đều free)<a class="anchor" href="#82-công-cụ-đều-free" aria-label="Liên kết tới mục này">#</a></h2><h3 id="sfx---15-phút-là-có-đủ-12-tiếng" class="h h--3">SFX — 15 phút là có đủ 12 tiếng<a class="anchor" href="#sfx---15-phút-là-có-đủ-12-tiếng" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Tool</th><th>Loại</th><th>Ghi chú</th></tr></thead><tbody><tr><td><strong>jsfxr</strong> (web, tìm "jsfxr")</td><td>Trình sinh SFX 8-bit</td><td>Bấm "Pickup/Coin", "Hurt", "Explosion" → ra ngay. Export <code>.wav</code>. <strong>Nhanh nhất</strong></td></tr><tr><td><strong>ChipTone</strong> (web, SFBGames)</td><td>Sinh SFX chi tiết hơn</td><td>Nhiều tham số hơn jsfxr, vẫn dễ</td></tr><tr><td><strong>rFXGen</strong> (desktop, raylib)</td><td>Bản desktop của sfxr</td><td>Offline, có batch</td></tr><tr><td><strong>sfxr / bfxr</strong></td><td>Bản gốc</td><td>Kinh điển</td></tr><tr><td><strong>Audacity</strong></td><td>Chỉnh sửa</td><td>Cắt, fade, normalize, đổi cao độ</td></tr></tbody></table></div><p>Quy trình SFX thực tế:</p><ol class="list"><li>Mở jsfxr</li><li>Bấm preset gần nhất (ví dụ "Pickup/Coin" cho <code>pickup</code>)</li><li>Bấm "Mutate" 5–10 lần, nghe, chọn cái thích</li><li>Kéo slider <code>Sustain</code>/<code>Decay</code> cho ngắn lại (SFX game nên <strong>rất ngắn</strong>)</li><li>Export <code>.wav</code> → <code>audio/sfx/pickup.wav</code></li><li>Lặp lại</li></ol><p><strong>12 SFX trong 15–20 phút.</strong> Không cần AI, không cần kỹ năng.</p><h3 id="nhạc-chiptune" class="h h--3">Nhạc chiptune<a class="anchor" href="#nhạc-chiptune" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Tool</th><th>Loại</th><th>Độ khó</th><th>Ghi chú</th></tr></thead><tbody><tr><td><strong>Bosca Ceoil Blue</strong></td><td>Sequencer đơn giản</td><td>⭐ Rất dễ</td><td>Làm cho người không biết nhạc. Có preset chip. <strong>Bắt đầu ở đây</strong></td></tr><tr><td><strong>BeepBox</strong> (web)</td><td>Sequencer web</td><td>⭐ Rất dễ</td><td>Chia sẻ bằng URL, export <code>.wav</code>/<code>.mid</code></td></tr><tr><td><strong>Furnace Tracker</strong></td><td>Tracker đa chip</td><td>⭐⭐⭐ Khó</td><td>Chuẩn xác nhất: emulate NES 2A03, GB, SID... Chất 8-bit <strong>thật</strong></td></tr><tr><td><strong>FamiTracker / 0CC-FamiTracker</strong></td><td>Tracker NES</td><td>⭐⭐⭐ Khó</td><td>Đúng chuẩn NES. Windows</td></tr><tr><td><strong>LMMS</strong></td><td>DAW free</td><td>⭐⭐ Trung bình</td><td>Linh hoạt, không chuyên chip</td></tr><tr><td><strong>DefleMask</strong></td><td>Tracker</td><td>⭐⭐⭐</td><td>Trả phí</td></tr></tbody></table></div><p><strong>Lộ trình khuyến nghị</strong>: BeepBox hoặc Bosca Ceoil → làm được 3 bài trong 1 ngày. Nếu bạn thấy thích thì sang Furnace.</p><h3 id="nhạc-chiptune-trong-30-phút-với-beepbox-không-cần-biết-nhạc" class="h h--3">Nhạc chiptune trong 30 phút với BeepBox (không cần biết nhạc)<a class="anchor" href="#nhạc-chiptune-trong-30-phút-với-beepbox-không-cần-biết-nhạc" aria-label="Liên kết tới mục này">#</a></h3><ol class="list"><li>Chọn <code>Scale: Minor</code> (buồn) hoặc <code>Major</code> (sáng)</li><li>Chọn <code>Key: A</code> (hoặc bất kỳ)</li><li><code>Tempo</code>: 90 cho làng đêm, 110 cho hầm, 130 cho ending</li><li><strong>Kênh 1 (bass)</strong>: chọn instrument <code>square wave</code>, đặt 4 note thấp lặp lại — đây là "vòng hòa âm". Ví dụ: A - F - C - G, mỗi note 1 ô</li><li><strong>Kênh 2 (melody)</strong>: chọn <code>triangle</code>/<code>square</code>, viết melody chỉ dùng note trong scale. Quy tắc: đi lên rồi đi xuống, đừng nhảy quá xa</li><li><strong>Kênh 3 (drum)</strong>: pattern noise đơn giản — kick ở nhịp 1 và 3</li><li>Loop 4–8 ô, export <code>.wav</code></li></ol><p>Cái này thật sự làm được trong 30 phút với 0 kiến thức nhạc lý. Nghe không xuất sắc, nhưng <strong>có nhạc tốt hơn không nhạc rất nhiều</strong>.</p><hr class="rule"><h2 id="83-ai-gen-nhạc---nói-thẳng" class="h h--2">8.3 AI gen nhạc — nói thẳng<a class="anchor" href="#83-ai-gen-nhạc---nói-thẳng" aria-label="Liên kết tới mục này">#</a></h2><h3 id="tình-hình" class="h h--3">Tình hình<a class="anchor" href="#tình-hình" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Loại tool</th><th>Chất lượng cho chiptune 8-bit</th><th>Vấn đề</th></tr></thead><tbody><tr><td><strong>AI text-to-music</strong> (Suno, Udio, Stable Audio...)</td><td>⭐⭐ Nghe được nhưng <strong>không phải chiptune thật</strong></td><td>Ra bản "nhạc game điện tử" full-band, có reverb, có bass thật. Không phải 3 kênh xung vuông</td></tr><tr><td><strong>AI gen MIDI</strong></td><td>⭐⭐⭐ Khá hữu ích</td><td>Lấy MIDI về, import vào Furnace/BeepBox, gán instrument chip → <strong>chiptune thật</strong></td></tr><tr><td><strong>AI viết pattern tracker</strong> (nhờ Claude sinh code/dữ liệu)</td><td>⭐⭐ Được cho ý tưởng</td><td>Không tool nào nhận trực tiếp; phải nhập tay</td></tr></tbody></table></div><p><strong>Kết luận trung thực</strong>: AI text-to-music <strong>không</strong> cho ra chiptune 8-bit đúng chất. Nó cho ra "nhạc game orchestral/synth" — nghe hay nhưng lệch phong cách bạn đã chốt ở chương 00.</p><p><strong>Cách dùng AI cho nhạc hiệu quả nhất</strong>: nhờ AI (Claude) viết <strong>cấu trúc bài</strong> và <strong>chuỗi hợp âm + melody dạng note</strong>, rồi bạn nhập vào BeepBox/Furnace bằng tay. Đây là cách AI thật sự giúp: nó giải quyết phần "tôi không biết nhạc lý", còn bạn giải quyết phần "phải ra đúng chất chip".</p><p>Prompt mẫu:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Tôi làm nhạc chiptune 8-bit cho game phiêu lưu, dùng BeepBox (3 kênh:
+bass square, melody triangle, drum noise).
+
+Bài cần: BGM cho một làng chài ban đêm, ngọn hải đăng đã tắt.
+Cảm xúc: buồn, ấm, hơi lo lắng. Loop 8 ô nhạc, tempo 90.
+
+Cho tôi:
+1. Scale và key nên dùng (giải thích ngắn tại sao)
+2. Chuỗi hợp âm 4 hợp âm (viết dạng tên hợp âm + note cụ thể)
+3. Bass line: note theo từng ô (16 bước/ô)
+4. Melody: note theo từng ô, độ dài mỗi note
+5. Drum pattern đơn giản
+
+Viết dạng bảng để tôi nhập tay vào BeepBox. Chỉ dùng note trong scale.
+Giữ melody trong khoảng 1.5 octave để nghe được trên loa nhỏ.</code></pre></figure><p>Kết quả từ prompt này <strong>thực sự dùng được</strong> — nó là lý thuyết nhạc, không phải audio, nên AI làm tốt.</p><h3 id="bản-quyền-nhạc-ai---kiểm-kỹ" class="h h--3">Bản quyền nhạc AI — kiểm kỹ<a class="anchor" href="#bản-quyền-nhạc-ai---kiểm-kỹ" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Vấn đề</th><th>Trạng thái</th><th>Bạn nên làm</th></tr></thead><tbody><tr><td>Quyền thương mại của output</td><td><strong>Khác nhau theo tool và theo gói.</strong> Nhiều tool chỉ cho dùng thương mại ở gói trả phí</td><td>Đọc ToS đúng tool + đúng gói. Lưu ảnh chụp điều khoản kèm ngày</td></tr><tr><td>Nhạc AI có bản quyền không</td><td>Tương tự ảnh AI: nhiều nơi coi output thuần AI là <strong>không</strong> được bảo hộ</td><td>Đừng dựa vào việc "sở hữu" bài nhạc AI</td></tr><tr><td>Nguy cơ giống bài có bản quyền</td><td>Có thật với model train trên nhạc thương mại</td><td>Nghe kỹ; nếu thấy quen quá thì bỏ</td></tr><tr><td>Steam / itch.io</td><td>Cần khai báo nội dung AI</td><td>Khai báo trung thực</td></tr><tr><td>YouTube Content ID</td><td>Nhạc AI có thể bị claim</td><td>Nếu game có streamer chơi, đây là rủi ro thật cho họ</td></tr></tbody></table></div><h3 id="nguồn-nhạcsfx-miễn-phí-hợp-lệ-an-toàn-hơn" class="h h--3">Nguồn nhạc/SFX miễn phí hợp lệ (an toàn hơn)<a class="anchor" href="#nguồn-nhạcsfx-miễn-phí-hợp-lệ-an-toàn-hơn" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Nguồn</th><th>Giấy phép</th><th>Ghi chú</th></tr></thead><tbody><tr><td><strong>OpenGameArt.org</strong></td><td>CC0 / CC-BY / GPL — <strong>đọc từng asset</strong></td><td>Kho lớn nhất cho game indie</td></tr><tr><td><strong>Freesound.org</strong></td><td>CC0 / CC-BY</td><td>SFX thực; cần lọc</td></tr><tr><td><strong>Kenney.nl</strong></td><td>CC0</td><td>Gói SFX/UI chất lượng, dùng thoải mái</td></tr><tr><td><strong>itch.io asset packs</strong></td><td>Theo từng tác giả</td><td>Nhiều pack chiptune giá $0–5</td></tr><tr><td><strong>incompetech (Kevin MacLeod)</strong></td><td>CC-BY</td><td>Cần ghi credit</td></tr></tbody></table></div><blockquote class="note"><p><strong>Quy tắc CC-BY</strong>: bạn <strong>phải</strong> ghi credit đúng cách (tên tác giả + link + license). Làm file <code>CREDITS.md</code> trong game ngay từ asset đầu tiên bạn tải — nhớ lại sau 3 tháng là không thể.</p></blockquote><hr class="rule"><h2 id="84-định-dạng-import-vào-godot" class="h h--2">8.4 Định dạng &amp; import vào Godot<a class="anchor" href="#84-định-dạng-import-vào-godot" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Định dạng</th><th>Dùng cho</th><th>Lý do</th></tr></thead><tbody><tr><td><strong><code>.ogg</code></strong> (Vorbis)</td><td><strong>Nhạc nền</strong></td><td>Nén tốt, hỗ trợ loop tốt, Godot đọc native</td></tr><tr><td><strong><code>.wav</code></strong></td><td><strong>SFX ngắn</strong></td><td>Không nén → không delay khi phát, file nhỏ vì âm ngắn</td></tr><tr><td><code>.mp3</code></td><td>Tránh nếu được</td><td>Godot hỗ trợ, nhưng có gap khi loop</td></tr></tbody></table></div><p>Chuyển đổi bằng Audacity: <code>File → Export → Export as OGG</code> (quality 5–6 là đủ cho chiptune).</p><h3 id="cài-loop-cho-nhạc-ogg" class="h h--3">Cài loop cho nhạc <code>.ogg</code><a class="anchor" href="#cài-loop-cho-nhạc-ogg" aria-label="Liên kết tới mục này">#</a></h3><p>Chọn file <code>.ogg</code> trong FileSystem → tab <strong>Import</strong>:</p><ul class="list"><li><code>Loop</code>: <strong>On</strong></li><li><code>Loop Offset</code>: giây bắt đầu loop (0 nếu loop toàn bài; đặt số khác nếu bài có đoạn intro không loop)</li><li>Bấm <strong>Reimport</strong></li></ul><p>Với <code>.wav</code> (SFX): <code>Loop Mode: Disabled</code>, <code>Force → 8 Bit: off</code> (bật nếu muốn ép chất lượng chip thô hơn — thử xem thích không).</p><h3 id="normalize-âm-lượng---làm-sớm" class="h h--3">Normalize âm lượng — làm sớm<a class="anchor" href="#normalize-âm-lượng---làm-sớm" aria-label="Liên kết tới mục này">#</a></h3><p>Trước khi import, normalize hết file về cùng mức (Audacity: <code>Effect → Normalize → -3 dB</code>). Không làm bước này bạn sẽ có tiếng nhặt item to gấp 5 lần nhạc nền, và mất cả buổi đi tune <code>volume_db</code> từng chỗ.</p><p>Mức gợi ý:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Loại</th><th>Peak</th></tr></thead><tbody><tr><td>BGM</td><td>-6 dB</td></tr><tr><td>SFX thường</td><td>-6 dB</td></tr><tr><td>SFX quan trọng (puzzle solved)</td><td>-3 dB</td></tr><tr><td><code>text_blip</code>, <code>footstep</code> (phát rất nhiều)</td><td>-18 dB</td></tr></tbody></table></div><hr class="rule"><h2 id="85-audio-bus---thiết-lập-1-lần" class="h h--2">8.5 Audio bus — thiết lập 1 lần<a class="anchor" href="#85-audio-bus---thiết-lập-1-lần" aria-label="Liên kết tới mục này">#</a></h2><p>Mở panel <strong>Audio</strong> (dưới cùng editor, cạnh Output/Debugger). Tạo bus:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Master
+├── BGM        ← nhạc nền
+├── SFX        ← hiệu ứng
+└── Ambience   ← sóng biển, gió</code></pre></figure><p>Lưu layout: <code>Audio panel → Save As... → default_bus_layout.tres</code>, rồi set ở <code>Project Settings → Audio → Buses → Default Bus Layout</code>.</p><p>Vì sao cần bus: người chơi cần <strong>slider âm lượng riêng cho nhạc và SFX</strong>. Nếu bạn không tách bus từ đầu, thêm sau phải sửa mọi node.</p><p>Thêm effect vào bus <code>BGM</code>: <code>Reverb</code> nhẹ cho hầm (bật/tắt theo level) — hiệu ứng "trong hầm" cực rẻ.</p><hr class="rule"><h2 id="86-autoload-audio" class="h h--2">8.6 Autoload <code>Audio</code><a class="anchor" href="#86-autoload-audio" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/autoload/audio.gd
+extends Node
+
+## ─── Cấu hình ───────────────────────────────────────────────────────
+const SFX_DIR := "res://audio/sfx/"
+const SFX_POOL_SIZE := 12          # số SFX phát cùng lúc tối đa
+const BGM_FADE_TIME := 0.8
+
+## ─── Node nội bộ ────────────────────────────────────────────────────
+var _bgm_a: AudioStreamPlayer
+var _bgm_b: AudioStreamPlayer
+var _bgm_using_a := true
+
+var _sfx_pool: Array[AudioStreamPlayer] = []
+var _sfx_next := 0
+
+var _ambience: AudioStreamPlayer
+
+## Cache stream SFX theo tên để không load lại mỗi lần phát.
+var _sfx_cache: Dictionary = {}
+
+## Chống spam: cùng 1 SFX không phát lại trong khoảng này (giây).
+const SFX_MIN_INTERVAL := 0.03
+var _last_played: Dictionary = {}
+
+
+func _ready() -&gt; void:
+	# Hai player BGM để crossfade khi đổi nhạc.
+	_bgm_a = _make_player("BGM")
+	_bgm_b = _make_player("BGM")
+	_ambience = _make_player("Ambience")
+
+	for i in SFX_POOL_SIZE:
+		_sfx_pool.append(_make_player("SFX"))
+
+
+func _make_player(bus_name: String) -&gt; AudioStreamPlayer:
+	var p := AudioStreamPlayer.new()
+	p.bus = bus_name
+	add_child(p)
+	return p
+
+
+## ─── BGM ────────────────────────────────────────────────────────────
+
+## Đổi nhạc với crossfade. Gọi lại cùng bài -&gt; không làm gì.
+func play_bgm(stream: AudioStream, fade: float = BGM_FADE_TIME) -&gt; void:
+	if stream == null:
+		return
+	var current := _bgm_a if _bgm_using_a else _bgm_b
+	var next := _bgm_b if _bgm_using_a else _bgm_a
+
+	if current.stream == stream and current.playing:
+		return          # đã phát bài này rồi
+
+	next.stream = stream
+	next.volume_db = -40.0
+	next.play()
+
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(next, "volume_db", 0.0, fade)
+	if current.playing:
+		tw.tween_property(current, "volume_db", -40.0, fade)
+		tw.chain().tween_callback(current.stop)
+
+	_bgm_using_a = not _bgm_using_a
+
+
+func stop_bgm(fade: float = BGM_FADE_TIME) -&gt; void:
+	var current := _bgm_a if _bgm_using_a else _bgm_b
+	if not current.playing:
+		return
+	var tw := create_tween()
+	tw.tween_property(current, "volume_db", -40.0, fade)
+	tw.tween_callback(current.stop)
+
+
+## ─── SFX ────────────────────────────────────────────────────────────
+
+## Phát SFX theo tên file (không cần đuôi): play_sfx_by_name("pickup")
+func play_sfx_by_name(sfx_name: String, volume_db: float = 0.0, pitch_variation: float = 0.06) -&gt; void:
+	if sfx_name == "":
+		return
+
+	# Chống spam cùng một tiếng trong 1 frame (typewriter, footstep).
+	var now := Time.get_ticks_msec() / 1000.0
+	if _last_played.has(sfx_name) and now - float(_last_played[sfx_name]) &lt; SFX_MIN_INTERVAL:
+		return
+	_last_played[sfx_name] = now
+
+	var stream := _get_sfx(sfx_name)
+	if stream == null:
+		return
+
+	var p := _sfx_pool[_sfx_next]
+	_sfx_next = (_sfx_next + 1) % _sfx_pool.size()
+
+	p.stream = stream
+	p.volume_db = volume_db
+	# Đổi cao độ ngẫu nhiên chút -&gt; nghe không "máy móc" khi phát liên tục.
+	p.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
+	p.play()
+
+
+func _get_sfx(sfx_name: String) -&gt; AudioStream:
+	if _sfx_cache.has(sfx_name):
+		return _sfx_cache[sfx_name]
+
+	# Thử cả .wav và .ogg.
+	for ext in [".wav", ".ogg"]:
+		var path := SFX_DIR + sfx_name + ext
+		if ResourceLoader.exists(path):
+			var s: AudioStream = load(path)
+			_sfx_cache[sfx_name] = s
+			return s
+
+	push_warning("Audio: không tìm thấy SFX '%s' trong %s" % [sfx_name, SFX_DIR])
+	_sfx_cache[sfx_name] = null       # cache cả kết quả null -&gt; không warn lặp
+	return null
+
+
+## ─── Ambience ───────────────────────────────────────────────────────
+
+func play_ambience(stream: AudioStream, volume_db: float = -12.0) -&gt; void:
+	if _ambience.stream == stream and _ambience.playing:
+		return
+	_ambience.stream = stream
+	_ambience.volume_db = volume_db
+	_ambience.play()
+
+
+func stop_ambience() -&gt; void:
+	_ambience.stop()
+
+
+## ─── Âm lượng (cho menu settings) ───────────────────────────────────
+
+## linear 0.0..1.0 -&gt; dB. Dùng linear cho slider vì tai người nghe theo log.
+func set_bus_volume(bus_name: String, linear: float) -&gt; void:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx &lt; 0:
+		push_warning("Audio: không có bus '%s'" % bus_name)
+		return
+	if linear &lt;= 0.001:
+		AudioServer.set_bus_mute(idx, true)
+	else:
+		AudioServer.set_bus_mute(idx, false)
+		AudioServer.set_bus_volume_db(idx, linear_to_db(linear))
+
+
+func get_bus_volume(bus_name: String) -&gt; float:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx &lt; 0:
+		return 0.0
+	if AudioServer.is_bus_mute(idx):
+		return 0.0
+	return db_to_linear(AudioServer.get_bus_volume_db(idx))</code></pre></figure><blockquote class="note"><p><code>linear_to_db</code> / <code>db_to_linear</code> là hàm global trong Godot 4. Ở Godot 3 chúng tên <code>linear2db</code>/<code>db2linear</code> — nếu thấy lỗi tên hàm, bạn đang đọc tài liệu Godot 3.</p></blockquote><hr class="rule"><h2 id="87-âm-thanh-3d-audiostreamplayer3d" class="h h--2">8.7 Âm thanh 3D (<code>AudioStreamPlayer3D</code>)<a class="anchor" href="#87-âm-thanh-3d-audiostreamplayer3d" aria-label="Liên kết tới mục này">#</a></h2><p>Dùng cho tiếng phát ra từ <strong>một vị trí trong world</strong>: đuốc cháy, sóng vỗ ở bến, tiếng nước nhỏ giọt trong hầm.</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Torch (Interactable)
+├── Sprite
+├── Light (OmniLight3D)
+└── Sound (AudioStreamPlayer3D)
+    stream = audio/sfx/fire_loop.ogg    (Loop = On khi import)
+    unit_size = 3.0                      ← khoảng cách mà âm bắt đầu nhỏ đi
+    max_distance = 12.0                   ← xa hơn thì không nghe
+    attenuation_model = Inverse Distance
+    bus = "Ambience"
+    autoplay = true</code></pre></figure><p>Với camera <strong>orthographic ở xa</strong> (như game của ta), <code>AudioStreamPlayer3D</code> tính khoảng cách từ <strong>camera</strong>, mà camera đứng cách 20 unit → mọi tiếng đều rất nhỏ.</p><p>Hai cách xử lý:</p><ol class="list"><li>Tăng <code>unit_size</code> và <code>max_distance</code> lên tương ứng (ví dụ ×3)</li><li><strong>Khuyến nghị</strong>: đặt một <code>AudioListener3D</code> ở vị trí <strong>player</strong> thay vì camera:</li></ol><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Player (CharacterBody3D)
+└── AudioListener3D          ← position (0, 1, 0)</code></pre></figure><p>Trong script player: <code>$AudioListener3D.make_current()</code> ở <code>_ready()</code>. Từ đó âm thanh 3D tính theo tai nhân vật — đúng trực giác hơn.</p><blockquote class="note"><p><strong>Kiểm tra lại</strong>: tên node là <code>AudioListener3D</code> trong Godot 4 (Godot 3 gọi <code>Listener</code>). Nếu không thấy trong danh sách Add Node, tra F1.</p></blockquote><hr class="rule"><h2 id="88-cắm-âm-thanh-vào-game" class="h h--2">8.8 Cắm âm thanh vào game<a class="anchor" href="#88-cắm-âm-thanh-vào-game" aria-label="Liên kết tới mục này">#</a></h2><p>Điểm cắm cho từng hệ thống (khớp code chương 04–06):</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Chỗ</th><th>Gọi gì</th></tr></thead><tbody><tr><td><code>level_base.gd::_ready</code></td><td><code>Audio.play_bgm(bgm)</code></td></tr><tr><td><code>dialogue_box.gd</code> typewriter</td><td><code>Audio.play_sfx_by_name("text_blip")</code> mỗi 3 ký tự</td></tr><tr><td><code>dialogue_box.gd::show_choices</code></td><td><code>Audio.play_sfx_by_name("menu_confirm")</code></td></tr><tr><td><code>item_pickup.gd::interact</code></td><td><code>Audio.play_sfx_by_name("pickup")</code></td></tr><tr><td><code>locked_gate.gd</code> khóa / mở</td><td><code>"locked"</code> / <code>"gate_open"</code></td></tr><tr><td><code>torch.gd::interact</code></td><td><code>"torch_light"</code></td></tr><tr><td><code>torch_puzzle.gd</code></td><td><code>"puzzle_fail"</code> / <code>"puzzle_solved"</code></td></tr><tr><td><code>save_point.gd</code></td><td><code>"save"</code></td></tr><tr><td><code>inventory_ui.gd</code> chọn ô</td><td><code>"menu_move"</code></td></tr><tr><td><code>player.gd</code> bước chân</td><td>AnimationPlayer track "Call Method" ở frame chân chạm đất</td></tr></tbody></table></div><h3 id="bước-chân-đúng-nhịp" class="h h--3">Bước chân đúng nhịp<a class="anchor" href="#bước-chân-đúng-nhịp" aria-label="Liên kết tới mục này">#</a></h3><p>Đừng dùng timer. Dùng <code>AnimationPlayer</code> gọi method ở đúng frame animation chân chạm đất:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Animation "walk_down" (AnimationPlayer, không phải AnimatedSprite3D):
+  track "Call Method" trên node Player:
+    @ 0.15s  →  play_footstep()
+    @ 0.45s  →  play_footstep()</code></pre></figure><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript">## Thêm vào player.gd
+func play_footstep() -&gt; void:
+	# pitch_variation cao -&gt; mỗi bước nghe khác nhau, đỡ máy móc.
+	Audio.play_sfx_by_name("footstep", -14.0, 0.15)</code></pre></figure><p>Cách này làm bước chân <strong>khớp</strong> với animation ở mọi tốc độ — timer thì không.</p><hr class="rule"><h2 id="89-menu-âm-lượng" class="h h--2">8.9 Menu âm lượng<a class="anchor" href="#89-menu-âm-lượng" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">SettingsMenu (Control)
+├── BGMSlider (HSlider)       min 0, max 1, step 0.05
+├── SFXSlider (HSlider)
+└── AmbSlider (HSlider)</code></pre></figure><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/ui/settings_menu.gd
+extends Control
+
+const CONFIG_PATH := "user://settings.cfg"
+
+@onready var bgm_slider: HSlider = $BGMSlider
+@onready var sfx_slider: HSlider = $SFXSlider
+@onready var amb_slider: HSlider = $AmbSlider
+
+
+func _ready() -&gt; void:
+	_load_settings()
+	bgm_slider.value_changed.connect(_on_changed.bind("BGM"))
+	sfx_slider.value_changed.connect(_on_changed.bind("SFX"))
+	amb_slider.value_changed.connect(_on_changed.bind("Ambience"))
+
+
+func _on_changed(value: float, bus_name: String) -&gt; void:
+	Audio.set_bus_volume(bus_name, value)
+	_save_settings()
+
+
+## ConfigFile rất phù hợp cho settings: dạng INI, dễ đọc, dễ sửa tay khi debug.
+func _save_settings() -&gt; void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("audio", "bgm", bgm_slider.value)
+	cfg.set_value("audio", "sfx", sfx_slider.value)
+	cfg.set_value("audio", "ambience", amb_slider.value)
+	cfg.save(CONFIG_PATH)
+
+
+func _load_settings() -&gt; void:
+	var cfg := ConfigFile.new()
+	if cfg.load(CONFIG_PATH) != OK:
+		# Chưa có file -&gt; dùng mặc định.
+		bgm_slider.value = 0.7
+		sfx_slider.value = 0.8
+		amb_slider.value = 0.5
+	else:
+		bgm_slider.value = cfg.get_value("audio", "bgm", 0.7)
+		sfx_slider.value = cfg.get_value("audio", "sfx", 0.8)
+		amb_slider.value = cfg.get_value("audio", "ambience", 0.5)
+
+	Audio.set_bus_volume("BGM", bgm_slider.value)
+	Audio.set_bus_volume("SFX", sfx_slider.value)
+	Audio.set_bus_volume("Ambience", amb_slider.value)</code></pre></figure><blockquote class="note"><p>Đây là chỗ <code>ConfigFile</code> <strong>đúng việc</strong> — settings đơn giản, phẳng, người dùng có thể sửa tay khi cần. Còn save game thì dùng JSON (chương 06).</p></blockquote><hr class="rule"><h2 id="810-bài-tập" class="h h--2">8.10 Bài tập<a class="anchor" href="#810-bài-tập" aria-label="Liên kết tới mục này">#</a></h2><ol class="list"><li>Làm đủ 12 SFX bằng jsfxr trong 30 phút. Normalize hết về -6 dB (trừ <code>text_blip</code> về -18 dB).</li><li>Làm 1 bài BGM cho làng bằng BeepBox theo hướng dẫn 8.2. Export <code>.ogg</code>, set Loop = On.</li><li>Thử prompt AI ở 8.3 → nhập kết quả vào BeepBox. So sánh với bài bạn tự làm ở bài 2. Cái nào hay hơn?</li><li>Dựng <code>Audio</code> autoload + 3 bus. Cắm <code>pickup</code> và <code>text_blip</code> theo bảng 8.8.</li><li>Thêm <code>AudioStreamPlayer3D</code> cho một ngọn đuốc. Đi lại gần/xa → nghe to/nhỏ. Nếu không nghe được → thêm <code>AudioListener3D</code> vào player.</li><li>Làm menu âm lượng. Kéo slider → nghe đổi ngay, tắt game mở lại → giữ nguyên.</li><li>Tạo <code>CREDITS.md</code> liệt kê mọi asset bạn dùng + license + link.</li></ol><hr class="rule"><h2 id="811-lỗi-thường-gặp" class="h h--2">8.11 Lỗi thường gặp<a class="anchor" href="#811-lỗi-thường-gặp" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Triệu chứng</th><th>Nguyên nhân</th><th>Cách sửa</th></tr></thead><tbody><tr><td>Nhạc không loop, có khoảng lặng</td><td><code>.mp3</code>, hoặc Loop = Off khi import</td><td>Dùng <code>.ogg</code>, tab Import → Loop On → Reimport</td></tr><tr><td>Nhạc restart mỗi lần vào level</td><td>Gọi <code>play_bgm</code> với stream mới mỗi lần</td><td>Code 8.6 đã check trùng — đảm bảo dùng <strong>cùng resource</strong> ở các level</td></tr><tr><td>SFX bị cắt giữa</td><td>Pool bị ghi đè (nhiều SFX cùng lúc)</td><td>Tăng <code>SFX_POOL_SIZE</code></td></tr><tr><td><code>text_blip</code> nghe như tiếng rè</td><td>Phát mỗi frame</td><td>Chỉ phát mỗi 3 ký tự + <code>SFX_MIN_INTERVAL</code></td></tr><tr><td>SFX to hơn nhạc rất nhiều</td><td>Chưa normalize</td><td>Normalize hết ở Audacity</td></tr><tr><td>Không nghe gì</td><td>Bus bị mute, hoặc <code>volume_db</code> quá thấp, hoặc bus name gõ sai</td><td>Mở panel Audio khi chạy game, xem VU meter bus nào có tín hiệu</td></tr><tr><td>Âm thanh 3D quá nhỏ</td><td>Camera ở xa</td><td>Thêm <code>AudioListener3D</code> vào player + <code>make_current()</code></td></tr><tr><td>Slider âm lượng đổi rất "giật"</td><td>Dùng <code>set_bus_volume_db(slider.value)</code> trực tiếp</td><td>Dùng <code>linear_to_db</code> như code 8.6</td></tr><tr><td>Nhạc vẫn phát sau khi thoát ra menu</td><td>Chưa <code>stop_bgm()</code></td><td>Gọi <code>Audio.stop_bgm()</code> khi về menu</td></tr><tr><td>Web export không có tiếng lúc đầu</td><td>Browser chặn autoplay tới khi có tương tác người dùng</td><td>Bắt đầu game bằng 1 nút "Bấm để chơi" — đây là hành vi bắt buộc của browser</td></tr><tr><td>File audio làm build phình to</td><td><code>.wav</code> cho nhạc dài</td><td>Nhạc → <code>.ogg</code>; chỉ SFX ngắn dùng <code>.wav</code></td></tr><tr><td>Nhạc AI bị Content ID claim</td><td>Bản chất nhạc AI</td><td>Xem 8.3; ưu tiên tự làm hoặc CC0</td></tr></tbody></table></div>
+    </article>
+
+    <nav class="pager" aria-label="Chuyển chương"><a class="pager__link pager__link--prev" href="07-story-design.html"><span class="pager__dir">← Chương 07</span><span class="pager__title">Cốt truyện &amp; thiết kế game phiêu lưu</span></a><a class="pager__link pager__link--next" href="09-ai-workflow.html"><span class="pager__dir">Chương 09 →</span><span class="pager__title">Workflow làm game Godot với AI</span></a></nav>
+
+    <footer class="foot">
+      <p class="foot__note">Viết theo Godot 4.3–4.5 — kiểm tra lại trên bản bạn dùng</p>
+      <p class="foot__links"><a href="index.html">← Về mục lục</a> · <a href="#main">↑ Đầu trang</a></p>
+    </footer>
+  </main>
+</div>
+
+<button class="totop" id="toTop" type="button" aria-label="Lên đầu trang">↑</button>
+<div class="scrim" id="scrim" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>

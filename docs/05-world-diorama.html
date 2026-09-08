@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#12101a">
+<meta name="description" content="Dựng thế giới diorama 3D: lớp sâu, GridMap, ánh sáng, sprite đứng">
+<title>05 Dựng thế giới: diorama 3D với art 2D · Godot 4 2.5D</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2312101a'/%3E%3Crect x='6' y='2' width='4' height='3' fill='%23ffc857'/%3E%3Crect x='5' y='5' width='6' height='2' fill='%23ffe3a0'/%3E%3Crect x='6' y='7' width='4' height='6' fill='%235ad1e6'/%3E%3Crect x='4' y='13' width='8' height='2' fill='%23474063'/%3E%3C/svg%3E">
+<script>/* set the saved theme before first paint so there is no flash */(function(){try{var t=localStorage.getItem("g25d-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body class="page page--chapter">
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="progressBar"></span></div>
+
+<header class="topbar">
+  <a class="topbar__back" href="index.html"><span aria-hidden="true">←</span> Mục lục</a>
+  <span class="topbar__num">05</span>
+  <button class="iconbtn themebtn" type="button" data-theme-toggle aria-pressed="false" aria-label="Đổi nền sáng/tối">
+    <span class="themebtn__txt">Sáng</span>
+  </button>
+  <button class="iconbtn topbar__toc" id="tocToggle" type="button" aria-expanded="false" aria-controls="tocPanel">
+    <span class="topbar__toc-icon" aria-hidden="true"></span><span>Mục</span>
+  </button>
+</header>
+
+<div class="shell">
+  <nav class="toc" id="tocPanel" aria-label="Mục lục chương">
+    <p class="toc__title">Trong chương này</p>
+    <ol class="toc__list"><li class="toc__item toc__item--h2"><a href="#51-triết-lý-dựng-level-25d">5.1 Triết lý dựng level 2.5D</a></li><li class="toc__item toc__item--h2"><a href="#52-blockout-trước-art-sau">5.2 Blockout trước, art sau</a></li><li class="toc__item toc__item--h2"><a href="#53-sàn-và-tường-3-cách">5.3 Sàn và tường: 3 cách</a></li><li class="toc__item toc__item--h3"><a href="#531-sàn-mesh-texture-lặp-cách-a">5.3.1 Sàn mesh + texture lặp (cách A)</a></li><li class="toc__item toc__item--h3"><a href="#532-gridmap-cho-dungeon-cách-b">5.3.2 GridMap cho dungeon (cách B)</a></li><li class="toc__item toc__item--h3"><a href="#533-tường-sprite-cho-hầm-8-bit">5.3.3 Tường "sprite" cho hầm 8-bit</a></li><li class="toc__item toc__item--h2"><a href="#54-prop-là-sprite-đứng">5.4 Prop là sprite đứng</a></li><li class="toc__item toc__item--h3"><a href="#bảng-prop-cho-làng-cá-nục">Bảng prop cho Làng Cá Nục</a></li><li class="toc__item toc__item--h3"><a href="#rải-prop-nhanh-bằng-script-tùy-chọn">Rải prop nhanh bằng script (tùy chọn)</a></li><li class="toc__item toc__item--h2"><a href="#55-lớp-sâu-parallax-25d-thật">5.5 Lớp sâu (parallax 2.5D thật)</a></li><li class="toc__item toc__item--h2"><a href="#56-ánh-sáng-giữ-chất-8-bit-mà-vẫn-đẹp">5.6 Ánh sáng: giữ chất 8-bit mà vẫn đẹp</a></li><li class="toc__item toc__item--h3"><a href="#561-hai-triết-lý">5.6.1 Hai triết lý</a></li><li class="toc__item toc__item--h3"><a href="#562-worldenvironment-cho-đêm-bên-biển">5.6.2 WorldEnvironment cho đêm bên biển</a></li><li class="toc__item toc__item--h3"><a href="#563-đèn">5.6.3 Đèn</a></li><li class="toc__item toc__item--h3"><a href="#564-bóng-đổ">5.6.4 Bóng đổ</a></li><li class="toc__item toc__item--h2"><a href="#57-prop-đẩy-được-cho-câu-đố-2">5.7 Prop đẩy được (cho câu đố 2)</a></li><li class="toc__item toc__item--h2"><a href="#58-tổ-chức-level-tối-ưu">5.8 Tổ chức level &amp; tối ưu</a></li><li class="toc__item toc__item--h3"><a href="#cấu-trúc-level-chuẩn">Cấu trúc level chuẩn</a></li><li class="toc__item toc__item--h3"><a href="#script-level-base">Script level base</a></li><li class="toc__item toc__item--h3"><a href="#tối-ưu-chỉ-làm-khi-thấy-chậm">Tối ưu (chỉ làm khi thấy chậm)</a></li><li class="toc__item toc__item--h2"><a href="#59-bài-tập">5.9 Bài tập</a></li><li class="toc__item toc__item--h2"><a href="#510-lỗi-thường-gặp">5.10 Lỗi thường gặp</a></li></ol>
+  </nav>
+
+  <main class="main" id="main">
+    <article class="prose">
+      <p class="eyebrow">Chương 05 · 539 dòng</p>
+      <h1 class="title">Dựng thế giới: diorama 3D với art 2D</h1>
+      <p class="lede">Dựng thế giới diorama 3D: lớp sâu, GridMap, ánh sáng, sprite đứng</p>
+      <hr class="rule rule--tight">
+      <p>Mục tiêu: từ sandbox trống → <strong>Làng Cá Nục</strong> có nhà, cây, bến tàu, chiều sâu, ánh sáng đêm.</p><hr class="rule"><h2 id="51-triết-lý-dựng-level-25d" class="h h--2">5.1 Triết lý dựng level 2.5D<a class="anchor" href="#51-triết-lý-dựng-level-25d" aria-label="Liên kết tới mục này">#</a></h2><p>Nghĩ về level như một <strong>mô hình sân khấu</strong> (diorama), không phải một map 2D.</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">        ┌─── Lớp 4: SKY / xa nhất (z ≈ -60)   trời, mặt trăng, đường chân trời
+        │    ┌─── Lớp 3: BACKDROP (z ≈ -30)   núi, biển, hải đăng nhìn từ xa
+        │    │    ┌─── Lớp 2: SET DRESSING     nhà, cây to, đá (có collision hoặc không)
+        │    │    │    ┌─── Lớp 1: PLAYFIELD    sàn đi được, prop tương tác, NPC, player
+CAMERA ◄┼────┼────┼────┤
+        │    │    │    └─── Lớp 0: FOREGROUND   cỏ cao, cột, khung cửa che trước mặt player</code></pre></figure><ul class="list"><li><strong>Lớp 1 (playfield)</strong> là nơi gameplay diễn ra. Giữ nó <strong>phẳng và đơn giản</strong>. Người chơi phải đọc được đường đi trong 1 giây.</li><li><strong>Lớp 2–4</strong> chỉ để đẹp. Không collision, không logic. Đây là chỗ bạn "mua" cảm giác thế giới lớn rẻ nhất.</li><li><strong>Lớp 0 (foreground)</strong> che một phần playfield → tạo chiều sâu mạnh nhất. Dùng ít, đúng chỗ (khung cửa hầm, tàng lá góc khung hình).</li></ul><p>Quy tắc vàng: <strong>nếu người chơi không đi lên nó và không tương tác với nó, nó không cần collision và nên rẻ nhất có thể.</strong></p><hr class="rule"><h2 id="52-blockout-trước-art-sau" class="h h--2">5.2 Blockout trước, art sau<a class="anchor" href="#52-blockout-trước-art-sau" aria-label="Liên kết tới mục này">#</a></h2><p>Đây là kỷ luật quan trọng nhất chương này. Dựng level bằng hình hộp xám trước, chơi thử, sửa layout, <strong>rồi</strong> mới thay art.</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Town_Blockout (Node3D)
+├── Ground (StaticBody3D)
+│   ├── CSGBox3D  size (30, 0.5, 30)      ← CSG rất tiện để blockout, xóa sau
+│   └── CollisionShape3D
+├── House1_Block (StaticBody3D)  CSGBox3D (6, 5, 5)   position (-8, 2.5, -6)
+├── House2_Block (StaticBody3D)  CSGBox3D (5, 4, 5)   position ( 6, 2,  -4)
+├── Pier_Block   (StaticBody3D)  CSGBox3D (4, 0.4, 12) position (0, 0.2, 12)
+├── GateBlock    (StaticBody3D)  CSGBox3D (3, 4, 0.5) position (0, 2, -14)
+└── NPC_Markers (Node3D)
+    ├── Marker_Bay   (Marker3D)  position (-6, 0, -2)
+    ├── Marker_Tam   (Marker3D)  position ( 5, 0,  2)
+    └── Marker_Fish  (Marker3D)  position ( 0, 0, 10)</code></pre></figure><p>Chơi blockout và tự trả lời:</p><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span>Từ điểm spawn tới cổng hầm mất bao nhiêu giây? (Mục tiêu: 15–25s cho thị trấn nhỏ)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Có chỗ nào người chơi bị kẹt/không biết đi đâu?</li><li class="task"><span class="checkbox" aria-hidden="true"></span>3 NPC có nằm trên đường đi tự nhiên không, hay phải cố ý tìm?</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Camera có bị nhà chắn tầm nhìn không?</li></ul><p>Sửa xong mới vẽ art. <strong>Tiết kiệm được nhiều tuần.</strong></p><blockquote class="note"><p>Lỗi kinh điển: vẽ 40 asset đẹp rồi phát hiện thị trấn quá to, đi bộ nhàm chán → phải bỏ nửa số asset. Blockout ngăn chuyện đó.</p></blockquote><hr class="rule"><h2 id="53-sàn-và-tường-3-cách" class="h h--2">5.3 Sàn và tường: 3 cách<a class="anchor" href="#53-sàn-và-tường-3-cách" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Cách</th><th>Mô tả</th><th>Ưu</th><th>Nhược</th><th>Dùng cho</th></tr></thead><tbody><tr><td><strong>A. Mesh phẳng + texture tile</strong></td><td>1 <code>PlaneMesh</code> lớn, material lặp texture</td><td>Cực rẻ, 1 draw call</td><td>Không đa dạng, khó làm cao độ</td><td>Sàn thị trấn, sàn hầm</td></tr><tr><td><strong>B. GridMap</strong></td><td>Tilemap 3D thật, cần <code>MeshLibrary</code></td><td>Dựng nhanh bằng chuột, collision tự động, dungeon rất phù hợp</td><td>Phải làm MeshLibrary trước, hơi rườm</td><td>Dungeon, hầm nhiều phòng</td></tr><tr><td><strong>C. Node thủ công</strong></td><td>Đặt từng <code>MeshInstance3D</code>/<code>CSGBox3D</code></td><td>Kiểm soát tuyệt đối</td><td>Chậm, scene tree phình</td><td>Chi tiết đặc biệt, blockout</td></tr></tbody></table></div><p><strong>Cho game này</strong>: thị trấn dùng <strong>A</strong> (sàn phẳng lớn) + <strong>C</strong> (prop). Hầm hải đăng dùng <strong>B</strong> (GridMap).</p><h3 id="531-sàn-mesh-texture-lặp-cách-a" class="h h--3">5.3.1 Sàn mesh + texture lặp (cách A)<a class="anchor" href="#531-sàn-mesh-texture-lặp-cách-a" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Ground (StaticBody3D)               collision_layer = 1
+├── MeshInstance3D
+│   mesh = PlaneMesh, size (40, 40)
+│   material_override = StandardMaterial3D:
+│       albedo_texture = art/tiles/sand_16.png
+│       uv1_scale = (40, 40, 1)     ← lặp 40 lần trên 40 unit -&gt; 1 tile/unit
+│       texture_filter = Nearest
+│       shading_mode = Unshaded (hoặc Per-Pixel nếu muốn nhận ánh sáng)
+│       cull_mode = Back
+└── CollisionShape3D
+    shape = BoxShape3D (40, 0.5, 40), position.y = -0.25</code></pre></figure><p>Texture <code>sand_16.png</code> phải <strong>tileable</strong> (mép trên khớp mép dưới). Import: <code>Repeat = Enabled</code>, <code>Filter = Nearest</code>, <code>Mipmaps = off</code>.</p><blockquote class="note"><p><code>uv1_scale</code>: nếu tile của bạn là 16×16 px và bạn muốn 1 tile = 1 world unit thì <code>uv1_scale = (kích_thước_plane, kích_thước_plane, 1)</code>. Với plane 40×40 → <code>(40, 40, 1)</code>.</p></blockquote><p>Muốn nhiều loại sàn (cát / gỗ bến / đá): dùng nhiều <code>MeshInstance3D</code> nhỏ hơn ghép lại, hoặc 1 texture atlas lớn vẽ tay cả khu (cách "vẽ nguyên bản đồ như một tấm ảnh" — rất hiệu quả cho thị trấn nhỏ, đây là cách nhiều game HD-2D indie làm).</p><h3 id="532-gridmap-cho-dungeon-cách-b" class="h h--3">5.3.2 GridMap cho dungeon (cách B)<a class="anchor" href="#532-gridmap-cho-dungeon-cách-b" aria-label="Liên kết tới mục này">#</a></h3><p>Bước 1 — tạo <code>MeshLibrary</code>:</p><ol class="list"><li>Tạo scene mới <code>art/tiles/dungeon_meshlib_source.tscn</code>, root <code>Node3D</code></li><li><p>Thêm các node con, <strong>mỗi node con = 1 tile</strong>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Root (Node3D)
+├── FloorStone (MeshInstance3D)      BoxMesh (1, 0.2, 1), material đá
+│   └── StaticBody3D
+│       └── CollisionShape3D          BoxShape3D (1, 0.2, 1)
+├── WallStone (MeshInstance3D)        BoxMesh (1, 2, 1)
+│   └── StaticBody3D
+│       └── CollisionShape3D          BoxShape3D (1, 2, 1)
+└── StairStone (MeshInstance3D)       ...</code></pre></figure><p>Tên node = tên tile trong palette. Collision <strong>phải</strong> là con của MeshInstance3D dưới dạng <code>StaticBody3D</code>.</p></li><li><code>Scene → Export As... → MeshLibrary...</code> → lưu <code>art/tiles/dungeon.meshlib</code></li></ol><p>Bước 2 — dùng:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Dungeon01 (Node3D)
+└── GridMap
+    mesh_library = art/tiles/dungeon.meshlib
+    cell_size = (1, 1, 1)              ← khớp 1 unit = 16px
+    collision_layer = 1</code></pre></figure><p>Vẽ bằng chuột trong viewport 3D. Phím tắt hữu ích khi GridMap được chọn: giữ chuột trái để vẽ, <code>Shift</code> + kéo để vẽ hình chữ nhật, <code>Ctrl</code> + trái để xóa, <code>S</code>/<code>A</code> để xoay tile. (Phím tắt có thể khác giữa các bản — xem panel GridMap ở dưới viewport.)</p><blockquote class="note"><p><strong>Kiểm tra lại</strong>: cách export MeshLibrary có thể đổi nhẹ giữa các bản Godot 4. Nếu không thấy menu, tìm <code>Scene → Export As</code>.</p></blockquote><h3 id="533-tường-sprite-cho-hầm-8-bit" class="h h--3">5.3.3 Tường "sprite" cho hầm 8-bit<a class="anchor" href="#533-tường-sprite-cho-hầm-8-bit" aria-label="Liên kết tới mục này">#</a></h3><p>Muốn hầm trông pixel hơn nữa: tường là <code>Sprite3D</code> (<code>billboard = Disabled</code>, <code>double_sided = true</code>) thay vì mesh, còn collision là <code>StaticBody3D</code> + <code>BoxShape3D</code> riêng. Cách này cho bạn vẽ tường bằng pixel art thật (có rêu, có vết nứt vẽ tay) thay vì texture lặp trên box.</p><p>Trade-off: nhiều node hơn, và tường chỉ đẹp ở một góc camera. Vì camera của ta khóa cứng → chấp nhận được.</p><hr class="rule"><h2 id="54-prop-là-sprite-đứng" class="h h--2">5.4 Prop là sprite đứng<a class="anchor" href="#54-prop-là-sprite-đứng" aria-label="Liên kết tới mục này">#</a></h2><p>Cây, nhà, thùng, đuốc: tạo mỗi loại 1 scene tái dùng.</p><p><code>scenes/props/tree_pine.tscn</code>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">TreePine (StaticBody3D)              collision_layer = 4 (solid_prop)
+├── Sprite (Sprite3D)                ← script pixel_sprite_3d.gd (chương 02)
+│   texture = art/props/tree_pine_64.png
+│   sprite_height_px = 96
+│   billboard = Fixed Y
+│   alpha_cut = Discard
+├── Collider (CollisionShape3D)
+│   shape = CylinderShape3D radius 0.5, height 1.5
+│   position.y = 0.75                ← chỉ chắn phần gốc, tán cây cho đi xuyên
+└── Shadow (Sprite3D)                rotation.x = -90, y = 0.02</code></pre></figure><p><strong>Mẹo thiết kế quan trọng</strong>: collision của cây/nhà chỉ nên bao <strong>phần gốc</strong>, không bao cả sprite. Người chơi mong đi được "sau" tán cây. Bao cả sprite làm nhân vật bị chặn ở khoảng không → cảm giác tệ.</p><h3 id="bảng-prop-cho-làng-cá-nục" class="h h--3">Bảng prop cho Làng Cá Nục<a class="anchor" href="#bảng-prop-cho-làng-cá-nục" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Prop</th><th>Kích thước sprite</th><th>Collision</th><th>Ghi chú</th></tr></thead><tbody><tr><td>Nhà tranh</td><td>96×112</td><td>Box (5, 3, 4) ở gốc</td><td>Có thể chia thành 2 sprite: thân + mái để sort tốt hơn</td></tr><tr><td>Cây thông</td><td>64×96</td><td>Cylinder r=0.5 h=1.5</td><td>Chỉ gốc</td></tr><tr><td>Cột đèn dầu</td><td>16×48</td><td>Cylinder r=0.15 h=2</td><td>Có <code>OmniLight3D</code> con</td></tr><tr><td>Thùng cá</td><td>32×32</td><td>Box (1,1,1)</td><td>Đẩy được → <code>RigidBody3D</code> (5.7)</td></tr><tr><td>Lưới cá phơi</td><td>48×32</td><td>Không</td><td>Trang trí</td></tr><tr><td>Bến gỗ</td><td>mesh</td><td>Box</td><td>Là sàn, không phải prop</td></tr><tr><td>Cổng hầm</td><td>48×64</td><td>Box (3, 4, 0.5)</td><td>Bật/tắt collision theo flag</td></tr><tr><td>Đuốc tường</td><td>16×32</td><td>Không</td><td>Có <code>OmniLight3D</code> + particle</td></tr></tbody></table></div><h3 id="rải-prop-nhanh-bằng-script-tùy-chọn" class="h h--3">Rải prop nhanh bằng script (tùy chọn)<a class="anchor" href="#rải-prop-nhanh-bằng-script-tùy-chọn" aria-label="Liên kết tới mục này">#</a></h3><p>Dựng 50 cây bằng chuột rất mệt. Dùng script <code>@tool</code> rải theo path:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/util/prop_scatter.gd
+# Gắn vào một Node3D. Nhấn nút "Scatter" trong Inspector để rải prop.
+@tool
+extends Node3D
+
+@export var prop_scene: PackedScene
+@export var count: int = 20
+@export var area_size: Vector2 = Vector2(20, 20)
+@export var min_distance: float = 1.5
+@export var random_seed: int = 12345
+
+## Bấm để rải lại (Godot hiển thị checkbox; tick rồi nó tự bỏ tick).
+@export var scatter_now: bool = false:
+	set(value):
+		if value and Engine.is_editor_hint():
+			_scatter()
+
+func _scatter() -&gt; void:
+	if prop_scene == null:
+		push_warning("Chưa gán prop_scene")
+		return
+
+	# Xóa prop cũ do script tạo (giữ node đặt tay bằng cách check tên tiền tố).
+	for child in get_children():
+		if child.name.begins_with("Scattered_"):
+			child.queue_free()
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = random_seed          # cùng seed -&gt; cùng kết quả, có thể tái tạo
+	var placed: Array[Vector3] = []
+	var attempts := 0
+
+	while placed.size() &lt; count and attempts &lt; count * 30:
+		attempts += 1
+		var p := Vector3(
+			rng.randf_range(-area_size.x * 0.5, area_size.x * 0.5),
+			0.0,
+			rng.randf_range(-area_size.y * 0.5, area_size.y * 0.5)
+		)
+		# Bỏ điểm quá gần prop đã đặt -&gt; tránh chồng lấp.
+		var too_close := false
+		for other in placed:
+			if p.distance_to(other) &lt; min_distance:
+				too_close = true
+				break
+		if too_close:
+			continue
+
+		placed.append(p)
+		var inst := prop_scene.instantiate()
+		add_child(inst)
+		inst.name = "Scattered_%d" % placed.size()
+		inst.position = p
+		# owner phải set để node được LƯU vào file .tscn khi chạy ở editor.
+		inst.owner = get_tree().edited_scene_root</code></pre></figure><blockquote class="note"><p>Dòng <code>inst.owner = get_tree().edited_scene_root</code> là bắt buộc trong script <code>@tool</code>, không có nó node sẽ biến mất khi bạn lưu scene. Đây là bẫy mà AI hay quên — nhớ kiểm.</p></blockquote><hr class="rule"><h2 id="55-lớp-sâu-parallax-25d-thật" class="h h--2">5.5 Lớp sâu (parallax 2.5D thật)<a class="anchor" href="#55-lớp-sâu-parallax-25d-thật" aria-label="Liên kết tới mục này">#</a></h2><p>Trong 2D bạn phải code parallax. Trong 3D <strong>nó miễn phí</strong>: đặt vật ở <code>z</code> xa hơn, camera di chuyển → nó tự dịch chậm hơn.</p><p>Nhưng với <strong>camera orthographic thì KHÔNG</strong> — ortho không có phối cảnh, vật xa dịch đúng bằng vật gần. Đây là một trade-off thật của việc chọn ortho.</p><p>Ba cách xử lý:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Cách</th><th>Mô tả</th><th>Đánh giá</th></tr></thead><tbody><tr><td><strong>1. Perspective camera</strong></td><td>Đổi sang <code>PROJECTION_PERSPECTIVE</code>, <code>fov</code> 25–35°, camera lùi xa</td><td>Có parallax thật, pixel hơi không đều ở vật xa. Nhiều game HD-2D chọn cái này</td></tr><tr><td><strong>2. Backdrop dịch theo camera có hệ số</strong></td><td>Giữ ortho; script cho lớp xa di chuyển 0.3× camera</td><td>Kiểm soát tuyệt đối, pixel luôn đều. ✅ Khuyến nghị</td></tr><tr><td><strong>3. Backdrop tĩnh hoàn toàn</strong></td><td>Trời/núi đứng yên như tranh vẽ</td><td>Rẻ nhất, vẫn ổn với map nhỏ</td></tr></tbody></table></div><p>Script cho cách 2:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/util/parallax_layer_3d.gd
+# Gắn vào Node3D chứa lớp hậu cảnh (núi, biển, mây).
+extends Node3D
+
+## 0 = đứng yên hoàn toàn; 1 = dính chặt camera (không parallax).
+@export_range(0.0, 1.0, 0.05) var follow_factor: float = 0.3
+
+## Nếu để trống, tự tìm camera hiện hành.
+@export var camera: Camera3D
+
+var _origin: Vector3
+var _cam_origin: Vector3
+var _ready_done := false
+
+func _ready() -&gt; void:
+	_origin = global_position
+	if camera == null:
+		camera = get_viewport().get_camera_3d()
+	if camera:
+		_cam_origin = camera.global_position
+		_ready_done = true
+
+func _process(_delta: float) -&gt; void:
+	if not _ready_done:
+		return
+	# Camera dịch bao nhiêu -&gt; lớp này dịch theo follow_factor lần bấy nhiêu.
+	var cam_delta := camera.global_position - _cam_origin
+	global_position = _origin + Vector3(cam_delta.x, 0.0, cam_delta.z) * follow_factor</code></pre></figure><p>Gợi ý <code>follow_factor</code>:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Lớp</th><th>z</th><th>follow_factor</th></tr></thead><tbody><tr><td>Trời / mặt trăng</td><td>-80</td><td><code>0.95</code> (gần như dính camera)</td></tr><tr><td>Đường chân trời, biển</td><td>-50</td><td><code>0.7</code></td></tr><tr><td>Núi xa</td><td>-35</td><td><code>0.45</code></td></tr><tr><td>Hải đăng nhìn từ xa</td><td>-22</td><td><code>0.25</code></td></tr><tr><td>Playfield</td><td>0</td><td>không script (0)</td></tr><tr><td>Foreground</td><td>+6</td><td><code>-0.1</code> (dịch ngược, chiều sâu mạnh)</td></tr></tbody></table></div><hr class="rule"><h2 id="56-ánh-sáng-giữ-chất-8-bit-mà-vẫn-đẹp" class="h h--2">5.6 Ánh sáng: giữ chất 8-bit mà vẫn đẹp<a class="anchor" href="#56-ánh-sáng-giữ-chất-8-bit-mà-vẫn-đẹp" aria-label="Liên kết tới mục này">#</a></h2><p>Đây là chỗ 2.5D thắng 2D thuần rõ rệt nhất — và cũng là chỗ dễ phá phong cách nhất.</p><h3 id="561-hai-triết-lý" class="h h--3">5.6.1 Hai triết lý<a class="anchor" href="#561-hai-triết-lý" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Triết lý</th><th><code>Sprite3D.shaded</code></th><th>Kết quả</th></tr></thead><tbody><tr><td><strong>A. Sprite tự phát sáng</strong> (unshaded)</td><td><code>false</code></td><td>Màu pixel hiện đúng như bạn vẽ. Ánh sáng chỉ ảnh hưởng mesh (sàn/tường). Palette được bảo toàn 100%</td></tr><tr><td><strong>B. Sprite nhận sáng</strong> (shaded)</td><td><code>true</code></td><td>Nhân vật tối trong hầm, sáng dưới đèn → immersive hơn, nhưng màu lệch khỏi palette</td></tr></tbody></table></div><p><strong>Khuyến nghị: A cho nhân vật/NPC (giữ đọc được), B cho prop môi trường (cây, nhà) để chúng hòa vào scene.</strong></p><p>Hoặc cách trung dung: <code>shaded = false</code> nhưng dùng <code>modulate</code> để tint nhân vật theo vùng (script vùng ánh sáng đổi <code>sprite.modulate</code> khi player vào Area3D). Cách này giữ pixel sạch mà vẫn có cảm giác chuyển vùng.</p><h3 id="562-worldenvironment-cho-đêm-bên-biển" class="h h--3">5.6.2 <code>WorldEnvironment</code> cho đêm bên biển<a class="anchor" href="#562-worldenvironment-cho-đêm-bên-biển" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">WorldEnvironment
+└── Environment (tạo mới, lưu ra data/env_night.tres để tái dùng)
+    background_mode = Color
+    background_color = #0b1026            ← xanh navy rất tối
+    ambient_light_source = Color
+    ambient_light_color = #2a3a6b         ← xanh lạnh, ánh trăng
+    ambient_light_energy = 0.6
+    tonemap_mode = Filmic                 ← hoặc Linear nếu muốn màu "phẳng" hơn
+    glow_enabled = true
+    glow_intensity = 0.5
+    glow_bloom = 0.1
+    glow_hdr_threshold = 0.9              ← chỉ chỗ rất sáng mới glow (đèn, lửa)
+    fog_enabled = true
+    fog_light_color = #16204a
+    fog_density = 0.015
+    fog_sky_affect = 0.0</code></pre></figure><blockquote class="note"><p><code>glow</code> là hiệu ứng "đắt xắt ra miếng" cho pixel art: ngọn đuốc và hải đăng sẽ tỏa sáng nhìn rất ăn tiền. Nhưng đừng để <code>glow_hdr_threshold</code> thấp — sẽ nhòe toàn bộ sprite và mất chất 8-bit.</p><p>Trên renderer <strong>Compatibility</strong> (nhắm web), một số hiệu ứng như SDFGI/SSAO/volumetric fog <strong>không</strong> khả dụng, và glow có thể khác. <strong>Kiểm tra lại trên renderer bạn dùng</strong> trước khi thiết kế art dựa vào hiệu ứng.</p></blockquote><h3 id="563-đèn" class="h h--3">5.6.3 Đèn<a class="anchor" href="#563-đèn" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Đèn</th><th>Dùng cho</th><th>Setting gợi ý</th></tr></thead><tbody><tr><td><code>DirectionalLight3D</code></td><td>"Ánh trăng" chung</td><td><code>energy 0.4</code>, màu <code>#7f95d1</code>, rotation (-50, -35, 0), <code>shadow_enabled = true</code></td></tr><tr><td><code>OmniLight3D</code></td><td>Đuốc, đèn dầu, cửa sổ nhà</td><td><code>range 6</code>, <code>energy 2.5</code>, màu <code>#ffa64d</code>, <code>shadow_enabled = false</code> (rẻ)</td></tr><tr><td><code>SpotLight3D</code></td><td>Chùm sáng hải đăng</td><td><code>range 40</code>, <code>spot_angle 15</code>, quét bằng tween</td></tr></tbody></table></div><p>Số lượng đèn: <strong>giữ ≤ 8 đèn động cùng lúc trong tầm camera.</strong> Pixel game không cần nhiều, và Compatibility renderer có giới hạn.</p><p>Đèn nhấp nháy (đuốc) — mẹo cực rẻ, hiệu quả cao:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/props/torch_flicker.gd
+extends OmniLight3D
+
+@export var base_energy: float = 2.5
+@export var flicker_amount: float = 0.5
+@export var flicker_speed: float = 8.0
+
+var _t: float = 0.0
+var _noise_offset: float = 0.0
+
+func _ready() -&gt; void:
+	# Offset ngẫu nhiên -&gt; nhiều đuốc không nhấp nháy đồng bộ (rất lộ nếu đồng bộ).
+	_noise_offset = randf() * 100.0
+
+func _process(delta: float) -&gt; void:
+	_t += delta * flicker_speed
+	# Ghép 2 sin lệch tần -&gt; trông "tự nhiên" hơn 1 sin đơn.
+	var n := sin(_t + _noise_offset) * 0.6 + sin(_t * 2.3 + _noise_offset) * 0.4
+	light_energy = base_energy + n * flicker_amount</code></pre></figure><h3 id="564-bóng-đổ" class="h h--3">5.6.4 Bóng đổ<a class="anchor" href="#564-bóng-đổ" aria-label="Liên kết tới mục này">#</a></h3><p><code>DirectionalLight3D</code> với <code>shadow_enabled = true</code> sẽ đổ bóng — <strong>nhưng sprite billboard đổ bóng trông rất lạ</strong> (bóng của một tấm giấy). Hai lựa chọn:</p><ul class="list"><li>Tắt shadow cho sprite: <code>Sprite3D</code> → <code>cast_shadow = SHADOW_CASTING_SETTING_OFF</code> (thuộc <code>GeometryInstance3D</code>)</li><li>Dùng <code>blob shadow</code> giả như ở chương 04</li></ul><p><strong>Khuyến nghị: tắt shadow thật cho tất cả sprite, dùng blob shadow.</strong> Mesh (nhà, tường) thì cho đổ bóng thật.</p><hr class="rule"><h2 id="57-prop-đẩy-được-cho-câu-đố-2" class="h h--2">5.7 Prop đẩy được (cho câu đố 2)<a class="anchor" href="#57-prop-đẩy-được-cho-câu-đố-2" aria-label="Liên kết tới mục này">#</a></h2><p>Thùng cá phải đẩy được lên bệ đá.</p><p><code>scenes/props/pushable_crate.tscn</code>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">PushableCrate (RigidBody3D)
+│   mass = 20.0
+│   collision_layer = 4 (solid_prop)
+│   collision_mask  = 1 | 2 | 4
+│   axis_lock_angular_x = true          ← không cho lật
+│   axis_lock_angular_z = true
+│   linear_damp = 6.0                    ← dừng nhanh, không trượt như trên băng
+│   angular_damp = 10.0
+├── Collider (CollisionShape3D)  BoxShape3D (1, 1, 1), position.y = 0.5
+└── Sprite (Sprite3D)            texture crate_32.png, billboard Fixed Y, offset (0,16)</code></pre></figure><p>Để <code>CharacterBody3D</code> đẩy được <code>RigidBody3D</code>, phải chủ động apply lực (physics của Godot <strong>không</strong> tự truyền lực từ <code>move_and_slide</code>):</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript">## Thêm vào player.gd, gọi sau move_and_slide()
+@export var push_force: float = 6.0
+
+func _push_bodies() -&gt; void:
+	for i in get_slide_collision_count():
+		var col := get_slide_collision(i)
+		var body := col.get_collider()
+		if body is RigidBody3D:
+			# Đẩy theo phương ngang, tại điểm tiếp xúc.
+			var dir := -col.get_normal()
+			dir.y = 0.0
+			if dir.length_squared() &lt; 0.001:
+				continue
+			body.apply_impulse(
+				dir.normalized() * push_force * get_physics_process_delta_time() * 60.0,
+				col.get_position() - body.global_position
+			)</code></pre></figure><p>Gọi <code>_push_bodies()</code> ngay sau <code>move_and_slide()</code> trong <code>_physics_process</code>.</p><blockquote class="note"><p><code>RigidBody3D</code> cho puzzle đẩy hộp có nhược điểm: hộp có thể bị đẩy lệch, kẹt góc, hoặc trượt quá đà → puzzle "không bao giờ giải được". Nếu puzzle của bạn cần <strong>chính xác</strong>, dùng cách khác: hộp là <code>AnimatableBody3D</code> và bạn tự viết logic "đẩy 1 ô mỗi lần" (grid-based push, kiểu Sokoban). Với "Ngọn Đèn Cá Nục", bệ đá đủ rộng nên RigidBody chấp nhận được. <strong>Đây là quyết định thiết kế, không phải kỹ thuật — cân theo cảm giác bạn muốn.</strong></p></blockquote><hr class="rule"><h2 id="58-tổ-chức-level-tối-ưu" class="h h--2">5.8 Tổ chức level &amp; tối ưu<a class="anchor" href="#58-tổ-chức-level-tối-ưu" aria-label="Liên kết tới mục này">#</a></h2><h3 id="cấu-trúc-level-chuẩn" class="h h--3">Cấu trúc level chuẩn<a class="anchor" href="#cấu-trúc-level-chuẩn" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Town (Node3D)                             ← scripts/levels/level_base.gd
+├── Environment (Node3D)
+│   ├── WorldEnvironment
+│   ├── Sun (DirectionalLight3D)
+│   └── Backdrop (Node3D)                 ← script parallax_layer_3d.gd, factor 0.45
+│       ├── Mountains (Sprite3D)
+│       └── Sea (Sprite3D)
+├── Terrain (Node3D)
+│   ├── Ground (StaticBody3D)
+│   └── Walls (Node3D)
+├── Props (Node3D)                         ← trang trí, không logic
+│   ├── Trees (Node3D)                     ← prop_scatter.gd
+│   └── Buildings (Node3D)
+├── Interactables (Node3D)                 ← có logic
+│   ├── NPC_Bay (instance npc.tscn)
+│   ├── NPC_Tam (instance npc.tscn)
+│   ├── FishBasket (instance item_pickup.tscn)
+│   └── DungeonGate (instance locked_gate.tscn)
+├── Triggers (Node3D)
+│   └── ToDungeon (instance level_portal.tscn)
+├── Spawns (Node3D)
+│   ├── spawn_default (Marker3D)
+│   └── spawn_from_dungeon (Marker3D)
+└── Foreground (Node3D)                    ← factor -0.1
+    └── ForegroundLeaves (Sprite3D)</code></pre></figure><p>Tách <code>Props</code> (không logic) và <code>Interactables</code> (có logic) giúp bạn — <strong>và AI</strong> — tìm đúng chỗ khi sửa. Chương 09 nói rõ vì sao cấu trúc rõ ràng làm AI hữu ích hơn nhiều.</p><h3 id="script-level-base" class="h h--3">Script level base<a class="anchor" href="#script-level-base" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/levels/level_base.gd
+class_name LevelBase
+extends Node3D
+
+## Nhạc nền của level này.
+@export var bgm: AudioStream
+
+## Tên hiển thị khi vào khu vực (hiện chữ giữa màn hình kiểu JRPG).
+@export var display_name: String = ""
+
+func _ready() -&gt; void:
+	if bgm:
+		Audio.play_bgm(bgm)
+	if display_name != "":
+		HUD.show_area_title(display_name)
+
+
+## SceneRouter gọi hàm này để đặt player vào đúng cửa vào.
+func get_spawn_point(spawn_name: String) -&gt; Marker3D:
+	var spawns := get_node_or_null("Spawns")
+	if spawns == null:
+		push_warning("Level %s thiếu node Spawns" % name)
+		return null
+	var m := spawns.get_node_or_null(spawn_name) as Marker3D
+	if m == null:
+		push_warning("Không tìm thấy spawn '%s', dùng spawn đầu tiên" % spawn_name)
+		for child in spawns.get_children():
+			if child is Marker3D:
+				return child
+	return m</code></pre></figure><h3 id="tối-ưu-chỉ-làm-khi-thấy-chậm" class="h h--3">Tối ưu (chỉ làm khi thấy chậm)<a class="anchor" href="#tối-ưu-chỉ-làm-khi-thấy-chậm" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Kỹ thuật</th><th>Khi nào</th></tr></thead><tbody><tr><td><code>MultiMeshInstance3D</code> cho cỏ/đá lặp nhiều</td><td>&gt; 200 instance giống nhau</td></tr><tr><td>Gộp texture prop vào 1 atlas</td><td>Nhiều draw call vì nhiều texture khác nhau</td></tr><tr><td><code>VisibleOnScreenNotifier3D</code> để tắt logic prop ngoài màn hình</td><td>Prop có <code>_process</code> chạy liên tục</td></tr><tr><td>Tắt <code>shadow_enabled</code> cho <code>OmniLight3D</code></td><td>Nhiều đèn</td></tr><tr><td><code>Occlusion Culling</code> (Project Settings)</td><td>Map lớn, nhiều tường</td></tr><tr><td>Giảm <code>Environment</code> effect</td><td>FPS thấp trên máy yếu / web</td></tr></tbody></table></div><p><strong>Đừng tối ưu trước khi đo.</strong> Mở <code>Debug → Visible Collision Shapes</code> và panel <strong>Monitor</strong> khi chạy (F5 rồi tab Debugger → Monitors) để xem FPS, draw call, object count thật.</p><hr class="rule"><h2 id="59-bài-tập" class="h h--2">5.9 Bài tập<a class="anchor" href="#59-bài-tập" aria-label="Liên kết tới mục này">#</a></h2><ol class="list"><li>Blockout Làng Cá Nục theo 5.2. Chơi thử, đo thời gian đi từ spawn tới cổng hầm. Sửa nếu &gt; 30s.</li><li>Thay sàn blockout bằng mesh + texture tile (5.3.1). Kiểm tra <code>uv1_scale</code> cho tile không bị kéo méo.</li><li>Làm <code>tree_pine.tscn</code> với collision chỉ ở gốc. Đặt 10 cây bằng <code>prop_scatter.gd</code>.</li><li>Set <code>WorldEnvironment</code> theo 5.6.2. So sánh ảnh chụp trước/sau.</li><li>Thêm 3 <code>OmniLight3D</code> đuốc có <code>torch_flicker.gd</code>. Xác nhận chúng nhấp nháy <strong>không đồng bộ</strong>.</li><li>Thêm lớp backdrop núi ở <code>z = -35</code> với <code>follow_factor = 0.45</code>. Đi bộ ngang map → xác nhận núi dịch chậm hơn.</li><li>Làm <code>pushable_crate.tscn</code> và đẩy được nó. Nếu nó lật/bay → kiểm tra <code>axis_lock_angular_*</code> và <code>mass</code>.</li><li>Dựng 1 phòng dungeon bằng GridMap (5.3.2).</li></ol><hr class="rule"><h2 id="510-lỗi-thường-gặp" class="h h--2">5.10 Lỗi thường gặp<a class="anchor" href="#510-lỗi-thường-gặp" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Triệu chứng</th><th>Nguyên nhân</th><th>Cách sửa</th></tr></thead><tbody><tr><td>Texture sàn bị kéo giãn</td><td><code>uv1_scale</code> sai</td><td>Đặt <code>uv1_scale = (size_x, size_z, 1)</code></td></tr><tr><td>Texture sàn có đường kẻ ở mép tile</td><td>Filter Linear / Mipmaps / texture không tileable</td><td>Nearest, tắt Mipmaps, sửa mép texture</td></tr><tr><td>GridMap vẽ được nhưng player xuyên qua</td><td>MeshLibrary source chưa có <code>StaticBody3D</code> + <code>CollisionShape3D</code></td><td>Thêm collision vào scene source rồi export lại MeshLibrary</td></tr><tr><td>GridMap tile lệch nửa ô</td><td><code>cell_size</code> ≠ kích thước mesh, hoặc <code>cell_center_y</code></td><td>Khớp <code>cell_size</code> với mesh; kiểm tra <code>cell_center_x/y/z</code></td></tr><tr><td>Cây chắn cả tán, đi bị kẹt</td><td>Collision bao cả sprite</td><td>Thu collision về gốc cây</td></tr><tr><td>Prop <code>@tool</code> scatter biến mất khi lưu scene</td><td>Thiếu <code>inst.owner = get_tree().edited_scene_root</code></td><td>Thêm dòng đó</td></tr><tr><td>Sprite hậu cảnh bị nhân vật che dù nó ở xa</td><td><code>render_priority</code> bị đặt sai, hoặc <code>no_depth_test = true</code></td><td>Reset <code>render_priority = 0</code>, tắt <code>no_depth_test</code></td></tr><tr><td>Parallax không hoạt động</td><td>Camera là Orthographic</td><td>Dùng script 5.5 hoặc chuyển Perspective</td></tr><tr><td>Scene tối đen</td><td><code>ambient_light_energy = 0</code>, không đèn, <code>shaded = true</code></td><td>Tăng ambient hoặc đặt <code>shaded = false</code></td></tr><tr><td>Glow làm mờ hết pixel</td><td><code>glow_hdr_threshold</code> quá thấp</td><td>Tăng lên 0.9–1.1</td></tr><tr><td>Bóng sprite trông như tấm bìa</td><td>Sprite đổ shadow thật</td><td><code>cast_shadow = Off</code> + blob shadow</td></tr><tr><td>FPS tụt khi vào thị trấn</td><td>Quá nhiều đèn có shadow / draw call</td><td>Tắt shadow OmniLight, gộp atlas, đo bằng Monitors</td></tr><tr><td>Thùng đẩy bị bay/lật</td><td><code>mass</code> thấp, <code>push_force</code> cao, chưa lock angular</td><td>Tăng <code>mass</code>, lock <code>angular_x/z</code>, tăng <code>linear_damp</code></td></tr><tr><td>Thùng kẹt góc, puzzle không giải được</td><td>Bản chất RigidBody</td><td>Chuyển sang grid-based push (5.7) hoặc làm bệ rộng hơn</td></tr></tbody></table></div>
+    </article>
+
+    <nav class="pager" aria-label="Chuyển chương"><a class="pager__link pager__link--prev" href="04-player-character.html"><span class="pager__dir">← Chương 04</span><span class="pager__title">Nhân vật điều khiển</span></a><a class="pager__link pager__link--next" href="06-adventure-mechanics.html"><span class="pager__dir">Chương 06 →</span><span class="pager__title">Cơ chế phiêu lưu</span></a></nav>
+
+    <footer class="foot">
+      <p class="foot__note">Viết theo Godot 4.3–4.5 — kiểm tra lại trên bản bạn dùng</p>
+      <p class="foot__links"><a href="index.html">← Về mục lục</a> · <a href="#main">↑ Đầu trang</a></p>
+    </footer>
+  </main>
+</div>
+
+<button class="totop" id="toTop" type="button" aria-label="Lên đầu trang">↑</button>
+<div class="scrim" id="scrim" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>

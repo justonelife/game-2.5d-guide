@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#12101a">
+<meta name="description" content="CharacterBody3D, input, animation, camera follow">
+<title>04 Nhân vật điều khiển · Godot 4 2.5D</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2312101a'/%3E%3Crect x='6' y='2' width='4' height='3' fill='%23ffc857'/%3E%3Crect x='5' y='5' width='6' height='2' fill='%23ffe3a0'/%3E%3Crect x='6' y='7' width='4' height='6' fill='%235ad1e6'/%3E%3Crect x='4' y='13' width='8' height='2' fill='%23474063'/%3E%3C/svg%3E">
+<script>/* set the saved theme before first paint so there is no flash */(function(){try{var t=localStorage.getItem("g25d-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body class="page page--chapter">
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="progressBar"></span></div>
+
+<header class="topbar">
+  <a class="topbar__back" href="index.html"><span aria-hidden="true">←</span> Mục lục</a>
+  <span class="topbar__num">04</span>
+  <button class="iconbtn themebtn" type="button" data-theme-toggle aria-pressed="false" aria-label="Đổi nền sáng/tối">
+    <span class="themebtn__txt">Sáng</span>
+  </button>
+  <button class="iconbtn topbar__toc" id="tocToggle" type="button" aria-expanded="false" aria-controls="tocPanel">
+    <span class="topbar__toc-icon" aria-hidden="true"></span><span>Mục</span>
+  </button>
+</header>
+
+<div class="shell">
+  <nav class="toc" id="tocPanel" aria-label="Mục lục chương">
+    <p class="toc__title">Trong chương này</p>
+    <ol class="toc__list"><li class="toc__item toc__item--h2"><a href="#41-chọn-node-gốc-characterbody3d-hay-characterbody2d">4.1 Chọn node gốc: CharacterBody3D hay CharacterBody2D?</a></li><li class="toc__item toc__item--h2"><a href="#42-cây-scene-playertscn">4.2 Cây scene player.tscn</a></li><li class="toc__item toc__item--h3"><a href="#vì-sao-cần-shadowsprite">Vì sao cần ShadowSprite</a></li><li class="toc__item toc__item--h3"><a href="#collision-layer---chốt-bảng-ngay-từ-đầu">Collision layer — chốt bảng ngay từ đầu</a></li><li class="toc__item toc__item--h2"><a href="#43-script-nhân-vật-đầy-đủ-chạy-được">4.3 Script nhân vật (đầy đủ, chạy được)</a></li><li class="toc__item toc__item--h3"><a href="#ghi-chú-thiết-kế">Ghi chú thiết kế</a></li><li class="toc__item toc__item--h2"><a href="#44-camera-follow">4.4 Camera follow</a></li><li class="toc__item toc__item--h3"><a href="#snap-pixel---trung-thực-về-giới-hạn">Snap pixel — trung thực về giới hạn</a></li><li class="toc__item toc__item--h2"><a href="#45-tương-tác-nhấn-nút-để-nói-chuyện-nhặt-đồ">4.5 Tương tác: nhấn nút để nói chuyện / nhặt đồ</a></li><li class="toc__item toc__item--h3"><a href="#prompt-nhấn-e-hiện-trên-đầu-vật">Prompt "Nhấn E" hiện trên đầu vật</a></li><li class="toc__item toc__item--h2"><a href="#46-animation-animatedsprite3d-hay-animationplayer">4.6 Animation: AnimatedSprite3D hay AnimationPlayer?</a></li><li class="toc__item toc__item--h2"><a href="#47-level-test-sandboxtscn-có-player">4.7 Level test: sandbox.tscn có player</a></li><li class="toc__item toc__item--h2"><a href="#48-bài-tập">4.8 Bài tập</a></li><li class="toc__item toc__item--h2"><a href="#49-lỗi-thường-gặp">4.9 Lỗi thường gặp</a></li></ol>
+  </nav>
+
+  <main class="main" id="main">
+    <article class="prose">
+      <p class="eyebrow">Chương 04 · 523 dòng</p>
+      <h1 class="title">Nhân vật điều khiển</h1>
+      <p class="lede">CharacterBody3D, input, animation, camera follow</p>
+      <hr class="rule rule--tight">
+      <p>Mục tiêu chương: nhân vật pixel art đi 4 hướng trong world 3D, animation đổi theo hướng, camera đi theo mượt, đụng tường thì dừng.</p><hr class="rule"><h2 id="41-chọn-node-gốc-characterbody3d-hay-characterbody2d" class="h h--2">4.1 Chọn node gốc: <code>CharacterBody3D</code> hay <code>CharacterBody2D</code>?<a class="anchor" href="#41-chọn-node-gốc-characterbody3d-hay-characterbody2d" aria-label="Liên kết tới mục này">#</a></h2><p>Câu hỏi này quan trọng vì nó khóa toàn bộ kiến trúc.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th></th><th><code>CharacterBody3D</code></th><th><code>CharacterBody2D</code> (trong world 3D)</th></tr></thead><tbody><tr><td>Vị trí</td><td><code>Vector3</code> — dùng trực tiếp trong scene 3D</td><td><code>Vector2</code> — phải tự map sang 3D mỗi frame</td></tr><tr><td>Va chạm</td><td>Physics 3D thật, va với mesh/GridMap/StaticBody3D</td><td>Physics 2D riêng biệt; <strong>không</strong> va được với collider 3D</td></tr><tr><td>Gravity/nhảy/dốc</td><td>Có sẵn: <code>is_on_floor()</code>, <code>floor_max_angle</code>, <code>apply_floor_snap()</code></td><td>Phải tự viết trục cao độ</td></tr><tr><td>Che khuất (occlusion) tự nhiên</td><td>✅ depth buffer lo hộ</td><td>❌ phải tự tính Y-sort/render_priority</td></tr><tr><td>Raycast tương tác</td><td><code>RayCast3D</code>, <code>Area3D</code> — cùng không gian với world</td><td>Phải viết 2 hệ toạ độ song song</td></tr><tr><td>Debug</td><td>Xem được collider trong viewport 3D</td><td>Collider 2D không hiện trong viewport 3D</td></tr><tr><td>Độ phức tạp ban đầu</td><td>Trung bình</td><td>Thấp lúc đầu, <strong>cao về sau</strong></td></tr><tr><td>Phù hợp</td><td>✅ Diorama 2.5D có chiều sâu thật</td><td>Game 2D thuần chỉ mượn nền 3D</td></tr></tbody></table></div><p><strong>Chốt: <code>CharacterBody3D</code>.</strong></p><p>Lý do quyết định: bạn muốn <em>chiều sâu thật</em> (đó là toàn bộ điểm của 2.5D). Dùng <code>CharacterBody2D</code> trong scene 3D nghĩa là bạn phải maintain <strong>hai</strong> hệ toạ độ và <strong>hai</strong> hệ collision không nói chuyện được với nhau. Nó chỉ hợp lý nếu gameplay của bạn hoàn toàn 2D và 3D chỉ là hình nền — không phải trường hợp này.</p><blockquote class="note"><p>Cách "sai nhưng phổ biến": dùng <code>Node2D</code> + tự tính <code>y = f(z)</code> để giả chiều sâu. Nó hoạt động cho game rất nhỏ, nhưng khi thêm cầu thang/nhiều tầng/cây che nhau thì sụp. Đừng đi đường này.</p></blockquote><hr class="rule"><h2 id="42-cây-scene-playertscn" class="h h--2">4.2 Cây scene <code>player.tscn</code><a class="anchor" href="#42-cây-scene-playertscn" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Player (CharacterBody3D)                    ← scripts/actors/player.gd
+│   collision_layer = 2 (player)
+│   collision_mask  = 1 (world) | 8 (props solid)
+├── Collider (CollisionShape3D)
+│   └── CapsuleShape3D  radius 0.35, height 1.6
+│   position.y = 0.8                        ← để đáy capsule ở y = 0 (chân)
+├── Visual (Node3D)
+│   position.y = 0.0
+│   └── Sprite (AnimatedSprite3D)
+│       sprite_frames = art/characters/hero.tres
+│       pixel_size = 0.0625
+│       billboard = Fixed Y
+│       alpha_cut = Discard
+│       texture_filter = Nearest
+│       shaded = false
+│       offset = (0, 16)                    ← sprite 32px cao -&gt; đẩy lên 16px để chân ở gốc
+├── InteractZone (Area3D)                   ← vùng phát hiện vật tương tác
+│   collision_layer = 0
+│   collision_mask  = 4 (interactable)
+│   position = (0, 0.8, 0)
+│   └── CollisionShape3D
+│       └── SphereShape3D radius 1.2
+├── ShadowSprite (Sprite3D)                 ← bóng giả: ellipse mờ nằm ngang
+│   texture = art/vfx/blob_shadow.png
+│   billboard = Disabled
+│   rotation.x = -90                        ← úp xuống, nằm trên mặt đất
+│   position.y = 0.02
+│   modulate.a = 0.45
+└── SpawnMarker (Marker3D)                  ← tiện cho debug</code></pre></figure><h3 id="vì-sao-cần-shadowsprite" class="h h--3">Vì sao cần <code>ShadowSprite</code><a class="anchor" href="#vì-sao-cần-shadowsprite" aria-label="Liên kết tới mục này">#</a></h3><p>Sprite billboard "đứng" trong 3D dễ trông như <strong>dán lơ lửng</strong>. Một vệt bóng ellipse mờ nằm phẳng dưới chân là mẹo rẻ nhất để mắt tin nhân vật đang chạm đất. Đây là kỹ thuật HD-2D dùng thật. Làm 1 file <code>blob_shadow.png</code> 32×16 hình ellipse đen mờ là đủ.</p><h3 id="collision-layer---chốt-bảng-ngay-từ-đầu" class="h h--3">Collision layer — chốt bảng ngay từ đầu<a class="anchor" href="#collision-layer---chốt-bảng-ngay-từ-đầu" aria-label="Liên kết tới mục này">#</a></h3><p>Đặt tên layer trong <code>Project Settings → Layer Names → 3D Physics</code>:</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Bit</th><th>Tên</th><th>Dùng cho</th></tr></thead><tbody><tr><td>1</td><td><code>world</code></td><td>Sàn, tường, địa hình</td></tr><tr><td>2</td><td><code>player</code></td><td>Nhân vật</td></tr><tr><td>3</td><td><code>interactable</code></td><td>NPC, item, cửa, công tắc (Area3D)</td></tr><tr><td>4</td><td><code>solid_prop</code></td><td>Thùng, đá đẩy được — chắn đường</td></tr><tr><td>5</td><td><code>trigger</code></td><td>Vùng chuyển màn, vùng cutscene</td></tr><tr><td>6</td><td><code>enemy</code></td><td>(nếu có sau)</td></tr></tbody></table></div><p>Đặt tên layer là việc 5 phút, tiết kiệm hàng giờ debug "sao nó không va".</p><hr class="rule"><h2 id="43-script-nhân-vật-đầy-đủ-chạy-được" class="h h--2">4.3 Script nhân vật (đầy đủ, chạy được)<a class="anchor" href="#43-script-nhân-vật-đầy-đủ-chạy-được" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/actors/player.gd
+class_name Player
+extends CharacterBody3D
+
+## ─── Thông số điều khiển ──────────────────────────────────────────────
+@export var walk_speed: float = 4.0        # world unit/giây (~64 px/s ở 16px/unit)
+@export var acceleration: float = 40.0     # tăng tốc — cao = phản hồi gắt, thấp = trơn trượt
+@export var friction: float = 50.0         # giảm tốc khi nhả phím
+@export var gravity: float = 24.0          # nặng hơn 9.8 cho cảm giác "game" chắc tay
+
+## ─── Node tham chiếu ─────────────────────────────────────────────────
+@onready var sprite: AnimatedSprite3D = $Visual/Sprite
+@onready var visual: Node3D = $Visual
+@onready var interact_zone: Area3D = $InteractZone
+
+## ─── Trạng thái ──────────────────────────────────────────────────────
+enum Facing { DOWN, UP, LEFT, RIGHT }
+var facing: Facing = Facing.DOWN
+
+## Khi true, player không nhận input (đang thoại, đang cutscene, đang chuyển màn).
+var input_locked: bool = false
+
+## Cache camera để không gọi get_camera_3d() mỗi frame.
+var _cam: Camera3D = null
+
+
+func _ready() -&gt; void:
+	_cam = get_viewport().get_camera_3d()
+	# GameState phát signal khi hội thoại bắt đầu/kết thúc -&gt; khóa/mở input.
+	if GameState:
+		GameState.input_lock_changed.connect(func(locked: bool) -&gt; void:
+			input_locked = locked
+			if locked:
+				velocity.x = 0.0
+				velocity.z = 0.0
+		)
+
+
+func _physics_process(delta: float) -&gt; void:
+	_apply_gravity(delta)
+	var wish := _read_move_input()
+	_apply_horizontal_movement(wish, delta)
+	move_and_slide()
+	_update_animation(wish)
+
+
+## Trọng lực: chỉ áp khi đang bay. Trên sàn thì zero để không tích lũy.
+func _apply_gravity(delta: float) -&gt; void:
+	if is_on_floor():
+		velocity.y = 0.0
+	else:
+		velocity.y -= gravity * delta
+
+
+## Đọc input và chuyển từ "hướng màn hình" sang "hướng world" theo camera.
+## Trả về vector đơn vị trên mặt phẳng XZ (y = 0).
+func _read_move_input() -&gt; Vector3:
+	if input_locked:
+		return Vector3.ZERO
+
+	# get_vector(neg_x, pos_x, neg_y, pos_y): lên = y âm, xuống = y dương.
+	var raw := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	if raw == Vector2.ZERO:
+		return Vector3.ZERO
+
+	if _cam == null:
+		_cam = get_viewport().get_camera_3d()
+	if _cam == null:
+		# Không có camera (test riêng lẻ) -&gt; dùng trục world thẳng.
+		return Vector3(raw.x, 0.0, raw.y).normalized()
+
+	# Lấy hướng "trước" và "phải" của camera, dẹt xuống mặt phẳng ngang.
+	var basis := _cam.global_transform.basis
+	var cam_forward := -basis.z
+	cam_forward.y = 0.0
+	cam_forward = cam_forward.normalized()
+
+	var cam_right := basis.x
+	cam_right.y = 0.0
+	cam_right = cam_right.normalized()
+
+	# raw.y âm (phím lên) -&gt; đi về phía trước camera -&gt; nhân với -raw.y
+	return (cam_right * raw.x + cam_forward * (-raw.y)).normalized()
+
+
+## Tăng/giảm tốc mượt thay vì set velocity thẳng -&gt; cảm giác có quán tính nhẹ.
+func _apply_horizontal_movement(wish: Vector3, delta: float) -&gt; void:
+	var horiz := Vector3(velocity.x, 0.0, velocity.z)
+	if wish != Vector3.ZERO:
+		horiz = horiz.move_toward(wish * walk_speed, acceleration * delta)
+	else:
+		horiz = horiz.move_toward(Vector3.ZERO, friction * delta)
+	velocity.x = horiz.x
+	velocity.z = horiz.z
+
+
+## Đổi animation + hướng sprite.
+## Chú ý: hướng sprite tính theo INPUT MÀN HÌNH, không theo hướng world —
+## người chơi bấm "lên" thì mong thấy lưng nhân vật, bất kể camera xoay thế nào.
+func _update_animation(wish: Vector3) -&gt; void:
+	var raw := Input.get_vector("move_left", "move_right", "move_up", "move_down") \
+		if not input_locked else Vector2.ZERO
+
+	var moving := wish != Vector3.ZERO
+
+	if moving:
+		if absf(raw.x) &gt; absf(raw.y):
+			facing = Facing.RIGHT if raw.x &gt; 0.0 else Facing.LEFT
+		else:
+			facing = Facing.DOWN if raw.y &gt; 0.0 else Facing.UP
+
+	var prefix := "walk" if moving else "idle"
+	var anim_name := "%s_%s" % [prefix, _facing_suffix()]
+
+	# flip_h: dùng chung sheet "side" cho cả left và right.
+	sprite.flip_h = (facing == Facing.LEFT)
+
+	if sprite.animation != anim_name and sprite.sprite_frames.has_animation(anim_name):
+		sprite.play(anim_name)
+	elif not sprite.is_playing():
+		sprite.play()
+
+
+func _facing_suffix() -&gt; String:
+	match facing:
+		Facing.UP:
+			return "up"
+		Facing.LEFT, Facing.RIGHT:
+			return "side"
+		_:
+			return "down"
+
+
+## Hướng nhìn dạng vector world — dùng cho raycast tương tác, đặt item xuống...
+func get_facing_vector() -&gt; Vector3:
+	match facing:
+		Facing.UP:
+			return Vector3(0, 0, -1)
+		Facing.DOWN:
+			return Vector3(0, 0, 1)
+		Facing.LEFT:
+			return Vector3(-1, 0, 0)
+		_:
+			return Vector3(1, 0, 0)</code></pre></figure><h3 id="ghi-chú-thiết-kế" class="h h--3">Ghi chú thiết kế<a class="anchor" href="#ghi-chú-thiết-kế" aria-label="Liên kết tới mục này">#</a></h3><ul class="list"><li><strong><code>Input.get_vector</code> bị gọi 2 lần mỗi frame</strong> (trong <code>_read_move_input</code> và <code>_update_animation</code>). Với 1 player thì vô hại; nếu muốn sạch hơn, cache vào biến <code>_raw_input</code> ở đầu <code>_physics_process</code>. Đây là ví dụ tốt cho việc "code AI viết chạy được nhưng có thể gọn hơn" — chương 09.</li><li><strong>Camera-relative movement</strong> làm sẵn để khi bạn xoay camera (cutscene, phòng đặc biệt) điều khiển vẫn tự nhiên. Nếu camera của bạn khóa cứng <code>yaw = 0</code> thì <code>cam_right = (1,0,0)</code>, <code>cam_forward = (0,0,-1)</code> → hàm cho ra đúng <code>Vector3(raw.x, 0, raw.y)</code>. Không mất gì.</li><li><strong><code>walk_speed = 4.0</code></strong> ≈ 64 px/giây. Với viewport 320px rộng, băng ngang màn hình mất 5 giây. Đó là tốc độ adventure hợp lý. Nếu thấy chậm, tăng lên 5.0–5.5; đừng vượt 7 vì pixel sẽ "trượt".</li></ul><hr class="rule"><h2 id="44-camera-follow" class="h h--2">4.4 Camera follow<a class="anchor" href="#44-camera-follow" aria-label="Liên kết tới mục này">#</a></h2><p>Godot có <code>Camera2D.position_smoothing</code> nhưng <strong><code>Camera3D</code> không có smoothing sẵn</strong>. Phải tự viết (hoặc dùng addon <code>PhantomCamera</code> từ AssetLib nếu muốn nhiều tính năng).</p><p><code>scenes/actors/camera_rig.tscn</code>:</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">CameraRig (Node3D)                  ← scripts/actors/camera_rig.gd
+└── Yaw (Node3D)                    rotation.y = 0
+    └── Pitch (Node3D)              rotation.x = -30
+        └── Camera3D                position.z = 20, Orthogonal, size 11.25</code></pre></figure><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/actors/camera_rig.gd
+extends Node3D
+
+## Node được đi theo. Để trống thì rig tự tìm Player trong scene.
+@export var target: Node3D
+
+## Cao hơn = camera bám gắt hơn. 6-10 là khoảng dễ chịu cho adventure.
+@export var follow_speed: float = 8.0
+
+## Nâng tâm ngắm lên ngực nhân vật thay vì bàn chân -&gt; khung hình cân hơn.
+@export var target_offset: Vector3 = Vector3(0.0, 1.0, 0.0)
+
+## Bật để camera nhảy theo bước pixel -&gt; hết hiện tượng sprite "rung" subpixel.
+@export var snap_to_pixel: bool = true
+@export var pixels_per_unit: float = 16.0
+
+## Giới hạn camera trong biên map (để không thấy ra ngoài level).
+@export var use_limits: bool = false
+@export var limit_min: Vector3 = Vector3(-50, 0, -50)
+@export var limit_max: Vector3 = Vector3(50, 0, 50)
+
+
+func _ready() -&gt; void:
+	if target == null:
+		# Tìm player theo group để rig dùng lại được ở mọi level.
+		var players := get_tree().get_nodes_in_group("player")
+		if not players.is_empty():
+			target = players[0]
+	if target:
+		global_position = target.global_position + target_offset
+
+
+# Dùng _process (không phải _physics_process) để camera mượt theo framerate màn hình.
+func _process(delta: float) -&gt; void:
+	if target == null:
+		return
+
+	var goal := target.global_position + target_offset
+
+	# Lerp độc lập framerate: 1 - exp(-k*dt). Nếu dùng lerp(a,b,k*dt) trực tiếp
+	# thì tốc độ bám sẽ đổi khi FPS đổi -&gt; camera "khác cảm giác" giữa các máy.
+	var t := 1.0 - exp(-follow_speed * delta)
+	var new_pos := global_position.lerp(goal, t)
+
+	if use_limits:
+		new_pos.x = clampf(new_pos.x, limit_min.x, limit_max.x)
+		new_pos.z = clampf(new_pos.z, limit_min.z, limit_max.z)
+
+	if snap_to_pixel:
+		new_pos = _snap(new_pos)
+
+	global_position = new_pos
+
+
+## Làm tròn vị trí về bội số của 1 pixel world (1/16 unit).
+## Giảm rung subpixel — thủ phạm số 1 làm pixel art trông "bẩn" khi di chuyển.
+func _snap(p: Vector3) -&gt; Vector3:
+	var step := 1.0 / pixels_per_unit
+	return Vector3(
+		roundf(p.x / step) * step,
+		roundf(p.y / step) * step,
+		roundf(p.z / step) * step
+	)</code></pre></figure><p>Nhớ thêm <code>Player</code> vào group <code>player</code>: chọn node <code>Player</code> → panel <strong>Node → Groups</strong> → thêm <code>player</code>.</p><h3 id="snap-pixel---trung-thực-về-giới-hạn" class="h h--3">Snap pixel — trung thực về giới hạn<a class="anchor" href="#snap-pixel---trung-thực-về-giới-hạn" aria-label="Liên kết tới mục này">#</a></h3><p>Snap camera giúp nhiều nhưng <strong>không</strong> làm pixel-perfect tuyệt đối, vì:</p><ul class="list"><li>Camera nghiêng 30° → 1 pixel world theo trục Z không map thành đúng 1 pixel dọc màn hình.</li><li>Bản thân nhân vật cũng di chuyển subpixel.</li></ul><p>Muốn perfect hơn thì phải snap <strong>cả</strong> vị trí render của sprite, và/hoặc dùng shader post-process. Với game 8-bit adventure, snap camera thường là đủ — mắt không bắt được phần còn lại. Đừng đổ 3 ngày vào việc này ở MVP.</p><p>Nếu vẫn thấy rung: thử <code>snap_to_pixel = false</code> và so sánh. Có trường hợp snap gây "giật bước" khó chịu hơn là rung mượt. <strong>Chọn theo mắt bạn, không theo lý thuyết.</strong></p><hr class="rule"><h2 id="45-tương-tác-nhấn-nút-để-nói-chuyện-nhặt-đồ" class="h h--2">4.5 Tương tác: nhấn nút để nói chuyện / nhặt đồ<a class="anchor" href="#45-tương-tác-nhấn-nút-để-nói-chuyện-nhặt-đồ" aria-label="Liên kết tới mục này">#</a></h2><p>Cơ chế: <code>InteractZone</code> (Area3D) thu thập các vật tương tác đang ở gần; nhấn <code>interact</code> → gọi vật <strong>gần nhất</strong>.</p><p>Interface cho mọi vật tương tác được:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># scripts/systems/interactable.gd
+class_name Interactable
+extends Area3D
+
+## Chữ hiện trên prompt: "Nói chuyện", "Nhặt", "Mở"...
+@export var prompt_text: String = "Kiểm tra"
+
+## Ưu tiên khi có nhiều vật cùng tầm — số lớn được chọn trước.
+@export var priority: int = 0
+
+signal interacted(by: Node3D)
+
+func _ready() -&gt; void:
+	collision_layer = 4     # bit 3 = interactable
+	collision_mask = 0      # không cần tự dò ai
+	add_to_group("interactable")
+
+## Lớp con override hàm này.
+func interact(by: Node3D) -&gt; void:
+	interacted.emit(by)
+
+## Cho phép tắt tạm thời (ví dụ NPC đã nói xong, cửa đã mở).
+func set_active(active: bool) -&gt; void:
+	monitoring = active
+	monitorable = active
+	collision_layer = 4 if active else 0</code></pre></figure><p>Thêm vào <code>player.gd</code>:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript">## ─── Tương tác ───────────────────────────────────────────────────────
+
+func _unhandled_input(event: InputEvent) -&gt; void:
+	if input_locked:
+		return
+	if event.is_action_pressed("interact"):
+		var target := _find_nearest_interactable()
+		if target:
+			target.interact(self)
+			get_viewport().set_input_as_handled()
+
+
+## Chọn vật tương tác gần nhất, ưu tiên vật nằm phía nhân vật đang nhìn.
+func _find_nearest_interactable() -&gt; Interactable:
+	var best: Interactable = null
+	var best_score: float = -INF
+	var facing_vec := get_facing_vector()
+
+	for area in interact_zone.get_overlapping_areas():
+		if area is not Interactable:
+			continue
+		var it: Interactable = area
+		var to_it := it.global_position - global_position
+		var dist := to_it.length()
+		if dist &lt; 0.001:
+			dist = 0.001
+
+		# Điểm = ưu tiên thủ công + hướng nhìn khớp - khoảng cách.
+		var dot := facing_vec.dot(to_it.normalized())
+		var score := float(it.priority) * 10.0 + dot * 2.0 - dist
+
+		if score &gt; best_score:
+			best_score = score
+			best = it
+
+	return best</code></pre></figure><blockquote class="note"><p><code>area is not Interactable</code> là cú pháp GDScript của Godot 4.x. Nếu bản bạn dùng báo lỗi, viết <code>if not (area is Interactable): continue</code>. <strong>Kiểm tra lại trên bản Godot bạn dùng.</strong></p></blockquote><h3 id="prompt-nhấn-e-hiện-trên-đầu-vật" class="h h--3">Prompt "Nhấn E" hiện trên đầu vật<a class="anchor" href="#prompt-nhấn-e-hiện-trên-đầu-vật" aria-label="Liên kết tới mục này">#</a></h3><p>Thêm vào <code>player.gd</code> để cập nhật prompt mỗi frame (rẻ, chỉ vài vật):</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript">func _process(_delta: float) -&gt; void:
+	var target := _find_nearest_interactable() if not input_locked else null
+	# HUD là autoload hoặc node UI; hàm show_prompt/hide_prompt bạn viết ở chương 06.
+	if target:
+		HUD.show_prompt(target.prompt_text, target.global_position + Vector3.UP * 1.4)
+	else:
+		HUD.hide_prompt()</code></pre></figure><hr class="rule"><h2 id="46-animation-animatedsprite3d-hay-animationplayer" class="h h--2">4.6 Animation: <code>AnimatedSprite3D</code> hay <code>AnimationPlayer</code>?<a class="anchor" href="#46-animation-animatedsprite3d-hay-animationplayer" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th></th><th><code>AnimatedSprite3D</code> + <code>SpriteFrames</code></th><th><code>AnimationPlayer</code></th></tr></thead><tbody><tr><td>Đổi frame sprite</td><td>✅ Sinh ra để làm việc này</td><td>Làm được (key vào <code>frame</code>) nhưng thủ công, mệt</td></tr><tr><td>Đồng bộ nhiều thứ (frame + SFX + spawn hitbox + tween scale)</td><td>❌</td><td>✅ Track riêng cho từng property, gọi được method</td></tr><tr><td>Có <code>animation_finished</code> signal</td><td>✅</td><td>✅</td></tr><tr><td>Blend/transition</td><td>❌</td><td>Có (qua <code>AnimationTree</code>)</td></tr><tr><td>Độ phức tạp</td><td>Thấp</td><td>Trung bình</td></tr></tbody></table></div><p><strong>Khuyến nghị: dùng cả hai, phân vai rõ.</strong></p><ul class="list"><li><code>AnimatedSprite3D</code> lo <strong>frame pixel</strong> (walk/idle/interact).</li><li><code>AnimationPlayer</code> lo <strong>những gì không phải frame</strong>: squash khi đáp đất, nhấp nháy khi bị thương, tween <code>Visual.position.y</code> khi nhảy, gọi SFX bước chân.</li></ul><p>Ví dụ <code>AnimationPlayer</code> cho hiệu ứng "nhặt đồ" (tự tạo trong editor):</p><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Animation "pickup" (0.4s):
+  track 1: Visual:position:y      0.0 → 0.15 → 0.0      (nhún lên)
+  track 2: Visual:scale           (1,1,1) → (0.9,1.1,1) → (1,1,1)
+  track 3: Call Method  Audio.play_sfx("pickup")   @ 0.05s
+  track 4: Call Method  Sprite.play("interact")    @ 0.0s</code></pre></figure><p>Gọi từ code:</p><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript">func play_pickup_feedback() -&gt; void:
+	$AnimationPlayer.play("pickup")
+	await $AnimationPlayer.animation_finished</code></pre></figure><hr class="rule"><h2 id="47-level-test-sandboxtscn-có-player" class="h h--2">4.7 Level test: <code>sandbox.tscn</code> có player<a class="anchor" href="#47-level-test-sandboxtscn-có-player" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">Sandbox (Node3D)
+├── WorldEnvironment
+├── DirectionalLight3D               rotation (-50, -35, 0)
+├── Floor (StaticBody3D)             collision_layer = 1
+│   ├── MeshInstance3D               PlaneMesh 40×40, material texture sàn (Nearest)
+│   └── CollisionShape3D             BoxShape3D (40, 0.5, 40), y = -0.25
+├── Walls (Node3D)
+│   ├── WallN (StaticBody3D)         BoxShape3D (40, 4, 1), position (0, 2, -20)
+│   ├── WallS (StaticBody3D)         position (0, 2, 20)
+│   ├── WallE (StaticBody3D)         BoxShape3D (1, 4, 40), position (20, 2, 0)
+│   └── WallW (StaticBody3D)         position (-20, 2, 0)
+├── Player (instance player.tscn)    position (0, 0, 0), group "player"
+└── CameraRig (instance camera_rig.tscn)</code></pre></figure><p>Chạy F5. Checklist mốc <strong>M3</strong>:</p><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span>WASD/arrow di chuyển được</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Animation đổi giữa idle và walk</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Đi lên thấy lưng, đi xuống thấy mặt, đi ngang sprite lật đúng</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Camera bám theo, không giật</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Đụng tường thì dừng, không xuyên, không rung</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Bóng dưới chân đi theo</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Không rơi khỏi sàn</li></ul><hr class="rule"><h2 id="48-bài-tập" class="h h--2">4.8 Bài tập<a class="anchor" href="#48-bài-tập" aria-label="Liên kết tới mục này">#</a></h2><ol class="list"><li>Dựng <code>player.tscn</code> + <code>camera_rig.tscn</code> + <code>sandbox.tscn</code>. Đạt hết checklist M3.</li><li>Đổi <code>follow_speed</code> giữa <code>2.0</code>, <code>8.0</code>, <code>30.0</code>. Ghi lại cảm giác. Chọn số bạn thích.</li><li>Thêm <code>sprint</code>: giữ Shift → <code>walk_speed * 1.6</code>, animation <code>walk</code> chạy nhanh hơn (<code>sprite.speed_scale</code>).</li><li>Thêm animation <code>interact</code>: nhấn E khi không có vật gì gần → nhân vật vẫn diễn động tác 1 lần rồi về idle. (Gợi ý: <code>await sprite.animation_finished</code>, và khóa <code>input_locked</code> trong lúc đó.)</li><li>Đặt một <code>Interactable</code> đơn giản (Area3D + script in ra <code>print("hello")</code>) trong sandbox. Nhấn E gần nó → thấy log.</li><li>Thêm biên camera: set <code>use_limits = true</code>, <code>limit_min/max</code> = ±16 → camera không thấy ra ngoài tường.</li></ol><hr class="rule"><h2 id="49-lỗi-thường-gặp" class="h h--2">4.9 Lỗi thường gặp<a class="anchor" href="#49-lỗi-thường-gặp" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Triệu chứng</th><th>Nguyên nhân</th><th>Cách sửa</th></tr></thead><tbody><tr><td>Nhân vật không di chuyển</td><td>Chưa tạo Input action, hoặc gõ sai tên action</td><td>Kiểm tra Input Map; tên phải khớp chính xác chữ</td></tr><tr><td>Di chuyển nhưng trượt vô hạn</td><td>Không gọi <code>move_and_slide()</code>, hoặc <code>friction</code> = 0</td><td>Gọi <code>move_and_slide()</code> cuối <code>_physics_process</code></td></tr><tr><td>Nhân vật rơi mãi</td><td>Sàn không có collision, hoặc <code>collision_mask</code> player không chứa layer world</td><td>Kiểm tra Layer/Mask (mục 4.2)</td></tr><tr><td>Nhân vật "leo" lên tường</td><td>Capsule + <code>floor_max_angle</code> rộng</td><td>Giảm <code>floor_max_angle</code> (mặc định 45°), hoặc dùng <code>CylinderShape3D</code></td></tr><tr><td>Nhân vật rung khi áp tường</td><td><code>acceleration</code> quá cao + collision</td><td>Giảm <code>acceleration</code>, hoặc bật <code>floor_snap_length</code></td></tr><tr><td>Animation không đổi</td><td>Tên animation trong <code>SpriteFrames</code> không khớp <code>"walk_down"</code>...</td><td>In ra <code>sprite.sprite_frames.get_animation_names()</code> để đối chiếu</td></tr><tr><td>Sprite lật ngược hướng</td><td><code>flip_h</code> áp cho hướng sai</td><td>Đổi điều kiện <code>facing == Facing.LEFT</code> ↔ <code>RIGHT</code> theo hướng sheet bạn vẽ</td></tr><tr><td>Đi lên thì nhân vật đi xuống</td><td>Dấu của <code>raw.y</code></td><td>Nhớ: phím <strong>lên</strong> cho <code>raw.y = -1</code>. <code>cam_forward * (-raw.y)</code></td></tr><tr><td>Camera giật cục</td><td>Dùng <code>_physics_process</code> cho camera, hoặc <code>snap_to_pixel</code> với <code>follow_speed</code> thấp</td><td>Chuyển sang <code>_process</code>; hoặc tắt snap để so sánh</td></tr><tr><td>Camera bị "trễ" nhiều rồi vọt tới</td><td><code>lerp</code> không độc lập framerate</td><td>Dùng công thức <code>1 - exp(-k*dt)</code> như trong code</td></tr><tr><td>Nhấn E không có gì xảy ra</td><td><code>InteractZone.collision_mask</code> không chứa layer <code>interactable</code>, hoặc Interactable có <code>monitorable = false</code></td><td>Mask = bit 3; kiểm tra <code>set_active(true)</code></td></tr><tr><td>Nhấn E kích hoạt 2 vật</td><td>Cả <code>_unhandled_input</code> và <code>_input</code> đều xử lý</td><td>Gọi <code>get_viewport().set_input_as_handled()</code></td></tr><tr><td>Bóng dưới chân "dựng đứng"</td><td><code>ShadowSprite.billboard</code> đang bật</td><td>Set <code>Disabled</code> + <code>rotation.x = -90</code></td></tr><tr><td>Bóng chìm trong sàn (z-fighting)</td><td>Cùng cao độ với sàn</td><td><code>position.y = 0.02</code></td></tr></tbody></table></div>
+    </article>
+
+    <nav class="pager" aria-label="Chuyển chương"><a class="pager__link pager__link--prev" href="03-pixel-art-ai.html"><span class="pager__dir">← Chương 03</span><span class="pager__title">Pixel art pipeline + dùng AI sinh asset</span></a><a class="pager__link pager__link--next" href="05-world-diorama.html"><span class="pager__dir">Chương 05 →</span><span class="pager__title">Dựng thế giới: diorama 3D với art 2D</span></a></nav>
+
+    <footer class="foot">
+      <p class="foot__note">Viết theo Godot 4.3–4.5 — kiểm tra lại trên bản bạn dùng</p>
+      <p class="foot__links"><a href="index.html">← Về mục lục</a> · <a href="#main">↑ Đầu trang</a></p>
+    </footer>
+  </main>
+</div>
+
+<button class="totop" id="toTop" type="button" aria-label="Lên đầu trang">↑</button>
+<div class="scrim" id="scrim" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>

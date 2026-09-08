@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#12101a">
+<meta name="description" content="Tổng quan tài liệu, lộ trình học, giới thiệu game mẫu &quot;Ngọn Đèn Cá Nục&quot;">
+<title>00 Tổng quan tài liệu &amp; Game mẫu · Godot 4 2.5D</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2312101a'/%3E%3Crect x='6' y='2' width='4' height='3' fill='%23ffc857'/%3E%3Crect x='5' y='5' width='6' height='2' fill='%23ffe3a0'/%3E%3Crect x='6' y='7' width='4' height='6' fill='%235ad1e6'/%3E%3Crect x='4' y='13' width='8' height='2' fill='%23474063'/%3E%3C/svg%3E">
+<script>/* set the saved theme before first paint so there is no flash */(function(){try{var t=localStorage.getItem("g25d-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body class="page page--chapter">
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="progressBar"></span></div>
+
+<header class="topbar">
+  <a class="topbar__back" href="index.html"><span aria-hidden="true">←</span> Mục lục</a>
+  <span class="topbar__num">00</span>
+  <button class="iconbtn themebtn" type="button" data-theme-toggle aria-pressed="false" aria-label="Đổi nền sáng/tối">
+    <span class="themebtn__txt">Sáng</span>
+  </button>
+  <button class="iconbtn topbar__toc" id="tocToggle" type="button" aria-expanded="false" aria-controls="tocPanel">
+    <span class="topbar__toc-icon" aria-hidden="true"></span><span>Mục</span>
+  </button>
+</header>
+
+<div class="shell">
+  <nav class="toc" id="tocPanel" aria-label="Mục lục chương">
+    <p class="toc__title">Trong chương này</p>
+    <ol class="toc__list"><li class="toc__item toc__item--h2"><a href="#01-bạn-sẽ-có-gì-sau-khi-đọc-hết">0.1 Bạn sẽ có gì sau khi đọc hết</a></li><li class="toc__item toc__item--h2"><a href="#02-bản-đồ-kiến-thức-đọc-theo-thứ-tự-này">0.2 Bản đồ kiến thức (đọc theo thứ tự này)</a></li><li class="toc__item toc__item--h2"><a href="#03-game-mẫu-xuyên-suốt-ngọn-đèn-cá-nục">0.3 Game mẫu xuyên suốt: "Ngọn Đèn Cá Nục"</a></li><li class="toc__item toc__item--h3"><a href="#logline">Logline</a></li><li class="toc__item toc__item--h3"><a href="#cấu-trúc-3-5-phút-chơi">Cấu trúc (3–5 phút chơi)</a></li><li class="toc__item toc__item--h3"><a href="#3-câu-đố-chi-tiết-ở-chương-07">3 câu đố (chi tiết ở chương 07)</a></li><li class="toc__item toc__item--h3"><a href="#danh-sách-flags-dùng-suốt-tài-liệu">Danh sách flags (dùng suốt tài liệu)</a></li><li class="toc__item toc__item--h2"><a href="#04-ngân-sách-thực-tế-nói-thẳng">0.4 Ngân sách thực tế (nói thẳng)</a></li><li class="toc__item toc__item--h2"><a href="#05-chuẩn-bị-trước-khi-sang-chương-01">0.5 Chuẩn bị trước khi sang chương 01</a></li><li class="toc__item toc__item--h2"><a href="#06-bài-tập">0.6 Bài tập</a></li><li class="toc__item toc__item--h2"><a href="#07-lỗi-thường-gặp-ở-giai-đoạn-ý-tưởng">0.7 Lỗi thường gặp (ở giai đoạn ý tưởng)</a></li></ol>
+  </nav>
+
+  <main class="main" id="main">
+    <article class="prose">
+      <p class="eyebrow">Chương 00 · 131 dòng</p>
+      <h1 class="title">Tổng quan tài liệu &amp; Game mẫu</h1>
+      <p class="lede">Tổng quan tài liệu, lộ trình học, giới thiệu game mẫu "Ngọn Đèn Cá Nục"</p>
+      <hr class="rule rule--tight">
+      <h2 id="01-bạn-sẽ-có-gì-sau-khi-đọc-hết" class="h h--2">0.1 Bạn sẽ có gì sau khi đọc hết<a class="anchor" href="#01-bạn-sẽ-có-gì-sau-khi-đọc-hết" aria-label="Liên kết tới mục này">#</a></h2><p>Một game phiêu lưu 2.5D chơi được 3–5 phút, export ra <code>.exe</code> / web, có:</p><ul class="list"><li>Nhân vật pixel art đi lại trong thế giới 3D thật (có chiều sâu, có che khuất, có ánh sáng)</li><li>1 thị trấn + 1 dungeon ngắn</li><li>Hội thoại NPC kiểu 8-bit (typewriter, hộp thoại viền, chọn câu trả lời)</li><li>Inventory nhặt/dùng vật phẩm</li><li>3 câu đố có logic thật</li><li>Save/load, chuyển màn giữ nguyên tiến trình</li><li>Nhạc + SFX chiptune</li></ul><p>Và quan trọng hơn: <strong>một workflow làm game với AI</strong> mà bạn tái dùng cho project sau.</p><hr class="rule"><h2 id="02-bản-đồ-kiến-thức-đọc-theo-thứ-tự-này" class="h h--2">0.2 Bản đồ kiến thức (đọc theo thứ tự này)<a class="anchor" href="#02-bản-đồ-kiến-thức-đọc-theo-thứ-tự-này" aria-label="Liên kết tới mục này">#</a></h2><figure class="code" data-lang="text"><figcaption><span class="code__lang">Text</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-text">01 Setup ──► 02 Hiểu 2.5D ──► 04 Nhân vật ──► 05 Thế giới
+                  │                                 │
+                  ▼                                 ▼
+            03 Pixel art + AI              06 Cơ chế phiêu lưu
+                                                    │
+                    07 Story design ◄───────────────┤
+                                                    ▼
+                                             08 Audio ──► 10 Publish
+
+            09 AI Workflow ── dùng ở MỌI bước phía trên</code></pre></figure><p><strong>Mốc kiểm tra tiến độ</strong> (nếu tới mốc mà chưa chạy được thì đừng đi tiếp):</p><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Mốc</th><th>Tiêu chí "xong"</th></tr></thead><tbody><tr><td>M1</td><td>Project mở được, cửa sổ 320×180 scale lên, không blur</td></tr><tr><td>M2</td><td>Có 1 <code>Sprite3D</code> pixel art đứng trên mặt đất, camera ortho nhìn nghiêng</td></tr><tr><td>M3</td><td>Điều khiển được nhân vật 4 hướng, animation đổi theo hướng, camera đi theo</td></tr><tr><td>M4</td><td>Nói chuyện được với 1 NPC</td></tr><tr><td>M5</td><td>Nhặt được 1 item, mở được 1 cửa khóa</td></tr><tr><td>M6</td><td>Đi từ thị trấn sang dungeon, quay lại, item còn nguyên</td></tr><tr><td>M7</td><td>Save → tắt game → load → đúng chỗ cũ</td></tr><tr><td>M8</td><td>Export ra file chạy được trên máy khác</td></tr></tbody></table></div><hr class="rule"><h2 id="03-game-mẫu-xuyên-suốt-ngọn-đèn-cá-nục" class="h h--2">0.3 Game mẫu xuyên suốt: <strong>"Ngọn Đèn Cá Nục"</strong><a class="anchor" href="#03-game-mẫu-xuyên-suốt-ngọn-đèn-cá-nục" aria-label="Liên kết tới mục này">#</a></h2><p>Đây là "con cá nục" của tài liệu — mọi ví dụ code đều thuộc game này, nên bạn học xong là có game thật, không phải 12 demo rời rạc.</p><h3 id="logline" class="h h--3">Logline<a class="anchor" href="#logline" aria-label="Liên kết tới mục này">#</a></h3><blockquote class="note"><p>Ngọn hải đăng của làng Cá Nục tắt ba đêm liền. Thuyền cha bạn chưa về. Bạn phải vào hầm hải đăng, tìm lại ba viên <strong>Lửa Muối</strong> và thắp đèn trước khi trời sáng.</p></blockquote><h3 id="cấu-trúc-3-5-phút-chơi" class="h h--3">Cấu trúc (3–5 phút chơi)<a class="anchor" href="#cấu-trúc-3-5-phút-chơi" aria-label="Liên kết tới mục này">#</a></h3><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Khu</th><th>Tên</th><th>Vai trò</th></tr></thead><tbody><tr><td>Màn 1</td><td><strong>Làng Cá Nục</strong> (thị trấn)</td><td>Học điều khiển, gặp 3 NPC, nhặt item đầu tiên, mở đường vào hầm</td></tr><tr><td>Màn 2</td><td><strong>Hầm Hải Đăng</strong> (dungeon 3 phòng)</td><td>3 câu đố, 1 save point, phòng lõi đèn</td></tr><tr><td>Màn 3</td><td><strong>Đỉnh Hải Đăng</strong> (ending)</td><td>Thắp đèn, cutscene ngắn, credits</td></tr></tbody></table></div><h3 id="3-câu-đố-chi-tiết-ở-chương-07" class="h h--3">3 câu đố (chi tiết ở chương 07)<a class="anchor" href="#3-câu-đố-chi-tiết-ở-chương-07" aria-label="Liên kết tới mục này">#</a></h3><ol class="list"><li><strong>Đổi cá lấy khóa</strong> — Ông Bảy giữ chìa khóa cổng hầm, chỉ đổi khi bạn mang cho ông một con cá nục. Cá nằm trong giỏ ở bến. → dạy <em>inventory + dialog có điều kiện</em>.</li><li><strong>Bệ trọng lượng</strong> — Cửa phòng 2 chỉ mở khi có vật nặng đè lên bệ đá. Đẩy thùng cá muối từ phòng 1 sang. → dạy <em>vật lý nhẹ + Area3D + flag</em>.</li><li><strong>Thứ tự ba đuốc</strong> — Ba đuốc phải bật theo thứ tự "<strong>biển – trăng – đá</strong>". Manh mối nằm trong câu hát của bà Tám ở làng (màn 1). → dạy <em>state machine nhỏ + kiến thức từ màn trước</em>.</li></ol><h3 id="danh-sách-flags-dùng-suốt-tài-liệu" class="h h--3">Danh sách flags (dùng suốt tài liệu)<a class="anchor" href="#danh-sách-flags-dùng-suốt-tài-liệu" aria-label="Liên kết tới mục này">#</a></h3><figure class="code" data-lang="gdscript"><figcaption><span class="code__lang">GDScript</span><button class="code__copy" type="button" aria-label="Sao chép đoạn code"><span class="code__copy-txt">Copy</span></button></figcaption><pre><code class="lang-gdscript"># GameState.flags — mọi tiến trình cốt truyện nằm ở đây
+"met_bay"            # đã nói chuyện ông Bảy lần đầu
+"has_fish"           # đã nhặt cá nục
+"gave_fish"          # đã đưa cá cho ông Bảy
+"has_rusty_key"      # có chìa khóa rỉ
+"gate_open"          # cổng hầm đã mở
+"heard_song"         # đã nghe bà Tám hát (manh mối đuốc)
+"crate_on_plate"     # thùng cá đã nằm trên bệ
+"torch_puzzle_done"  # đã bật đuốc đúng thứ tự
+"lighthouse_lit"     # đã thắp đèn — ending</code></pre></figure><p>Chỉ 9 flag. Một game advention nhỏ <strong>không cần</strong> hệ thống quest phức tạp — bạn cần 9 boolean và một cây dialog. Đừng over-engineer ở MVP.</p><hr class="rule"><h2 id="04-ngân-sách-thực-tế-nói-thẳng" class="h h--2">0.4 Ngân sách thực tế (nói thẳng)<a class="anchor" href="#04-ngân-sách-thực-tế-nói-thẳng" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Hạng mục</th><th>Người mới, làm một mình, có AI hỗ trợ</th></tr></thead><tbody><tr><td>Học Godot cơ bản</td><td>1–2 tuần (2h/ngày)</td></tr><tr><td>Code hết cơ chế chương 06</td><td>1–2 tuần</td></tr><tr><td>Art (nếu tự vẽ pixel từ đầu)</td><td>2–4 tuần</td></tr><tr><td>Art (AI gen + tự sửa)</td><td>1–1.5 tuần — tiết kiệm thật, nhưng <strong>không</strong> về 0</td></tr><tr><td>Audio</td><td>2–4 ngày</td></tr><tr><td>Polish + export</td><td>1 tuần</td></tr></tbody></table></div><p>Tổng ~6–10 tuần cho MVP 5 phút. AI cắt được khoảng <strong>30–50%</strong> thời gian ở phần boilerplate code và concept art — <strong>không</strong> cắt được thời gian ở game feel, level design, và debug. Chương 09 giải thích tại sao.</p><hr class="rule"><h2 id="05-chuẩn-bị-trước-khi-sang-chương-01" class="h h--2">0.5 Chuẩn bị trước khi sang chương 01<a class="anchor" href="#05-chuẩn-bị-trước-khi-sang-chương-01" aria-label="Liên kết tới mục này">#</a></h2><ul class="list list--task"><li class="task"><span class="checkbox" aria-hidden="true"></span>Máy: RAM ≥ 8GB, GPU hỗ trợ Vulkan (hoặc dùng renderer Compatibility)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Tài khoản GitHub (để version control — bắt buộc, kể cả làm một mình)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Cài Git</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Chọn editor pixel art: Aseprite (~$20) hoặc Pixelorama / LibreSprite (free)</li><li class="task"><span class="checkbox" aria-hidden="true"></span>Có Claude Code / Cursor / một AI coding tool</li></ul><hr class="rule"><h2 id="06-bài-tập" class="h h--2">0.6 Bài tập<a class="anchor" href="#06-bài-tập" aria-label="Liên kết tới mục này">#</a></h2><ol class="list"><li>Viết logline game <strong>của bạn</strong> (1 câu, ≤ 30 từ). Nếu không viết được 1 câu thì scope còn mơ hồ.</li><li>Liệt kê tối đa 10 flag cho game của bạn. Nếu quá 15 → cắt scope.</li><li>Vẽ tay bản đồ 2 khu vực trên giấy. Đánh dấu: điểm bắt đầu, 3 chỗ có đố, cửa khóa, save point.</li></ol><hr class="rule"><h2 id="07-lỗi-thường-gặp-ở-giai-đoạn-ý-tưởng" class="h h--2">0.7 Lỗi thường gặp (ở giai đoạn ý tưởng)<a class="anchor" href="#07-lỗi-thường-gặp-ở-giai-đoạn-ý-tưởng" aria-label="Liên kết tới mục này">#</a></h2><div class="table-wrap" tabindex="0" role="region" aria-label="Bảng, có thể cuộn ngang"><table><thead><tr><th>Lỗi</th><th>Hậu quả</th><th>Cách sửa</th></tr></thead><tbody><tr><td>Scope quá lớn ("open world, 20 giờ chơi")</td><td>Bỏ dở sau 3 tuần</td><td>Ép giới hạn: 2 map, 5 NPC, 3 đố</td></tr><tr><td>Làm art trước, code sau</td><td>Art không khớp gameplay, vẽ lại</td><td>Blockout hình hộp trước, art sau (chương 05)</td></tr><tr><td>Học engine bằng cách đọc hết docs</td><td>Không bao giờ bắt đầu</td><td>Học theo mốc M1–M8 ở trên</td></tr><tr><td>Copy code AI mà không hiểu</td><td>Bug không sửa được ở tuần thứ 4</td><td>Quy tắc "đọc trước khi dán" (chương 09)</td></tr><tr><td>Không dùng Git</td><td>Mất 2 ngày làm khi scene corrupt</td><td><code>git init</code> ngay hôm nay</td></tr></tbody></table></div>
+    </article>
+
+    <nav class="pager" aria-label="Chuyển chương"><a class="pager__link pager__link--next" href="01-setup.html"><span class="pager__dir">Chương 01 →</span><span class="pager__title">Thiết lập dự án Godot 4 cho pixel 2.5D</span></a></nav>
+
+    <footer class="foot">
+      <p class="foot__note">Viết theo Godot 4.3–4.5 — kiểm tra lại trên bản bạn dùng</p>
+      <p class="foot__links"><a href="index.html">← Về mục lục</a> · <a href="#main">↑ Đầu trang</a></p>
+    </footer>
+  </main>
+</div>
+
+<button class="totop" id="toTop" type="button" aria-label="Lên đầu trang">↑</button>
+<div class="scrim" id="scrim" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>
